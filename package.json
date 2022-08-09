@@ -1,0 +1,134 @@
+{
+  "name": "vbe-client-min",
+  "displayName": "vbecm",
+  "description": "excel vba module export, import, commit etc.",
+  "publisher": "toramame-seven",
+  "author": {
+    "name": "toramame-seven"
+  },
+  "version": "0.0.1",
+  "icon": "images/logo.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.69.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/*.xlsm",
+    "workspaceContains:**/*.cls",
+    "workspaceContains:**/*.bas",
+    "workspaceContains:**/*.frm"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "command.export",
+        "title": "export vba modules"
+      },
+      {
+        "command": "command.import",
+        "title": "import vba modules"
+      },
+      {
+        "command": "command.compile",
+        "title": "Compile Vba"
+      },
+      {
+        "command": "editor.run",
+        "title": "Run select Vba line"
+      },
+      {
+        "command": "editor.commit",
+        "title": "Commit vba modules"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "command": "command.export",
+          "group": "myGroup@1"
+        },
+        {
+          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "command": "command.import",
+          "group": "myGroup@2"
+        },
+        {
+          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "command": "command.compile",
+          "group": "myGroup@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "resourceExtname == .bas || resourceExtname == .cls || resourceExtname == .frm",
+          "command": "editor.run",
+          "group": "myGroup@1"
+        },
+        {
+          "when": "resourceExtname == .bas || resourceExtname == .cls  || resourceExtname == .frm",
+          "command": "editor.commit",
+          "group": "myGroup@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "vbecm",
+      "properties": {
+        "vbecm.useSheetModule": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable importing sheet Modules(cls)."
+        },
+        "vbecm.useFormModule": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable importing form modules(frm)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/iconv-lite": "^0.0.1",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.69.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.14.50",
+    "eslint": "^8.18.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.6.3"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toramameseven/vbe-client-mini.git"
+  },
+  "homepage": "https://github.com/toramameseven/vbe-client-mini"
+}
