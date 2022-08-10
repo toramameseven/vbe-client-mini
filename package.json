@@ -51,29 +51,29 @@
     "menus": {
       "explorer/context": [
         {
-          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
           "command": "command.export",
           "group": "myGroup@1"
         },
         {
-          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
           "command": "command.import",
           "group": "myGroup@2"
         },
         {
-          "when": "resourceExtname == .xlsm || resourceExtname == .xlam",
+          "when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
           "command": "command.compile",
           "group": "myGroup@3"
         }
       ],
       "editor/context": [
         {
-          "when": "resourceExtname == .bas || resourceExtname == .cls || resourceExtname == .frm",
+          "when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
           "command": "editor.run",
           "group": "myGroup@1"
         },
         {
-          "when": "resourceExtname == .bas || resourceExtname == .cls  || resourceExtname == .frm",
+          "when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
           "command": "editor.commit",
           "group": "myGroup@2"
         }
@@ -91,6 +91,11 @@
           "type": "boolean",
           "default": false,
           "description": "Enable importing form modules(frm)."
+        },
+        "vbecm.vbsEncode": {
+          "type": "string",
+          "default": "windows-31j",
+          "description": "Set system encode. If Japanese, windows-31j"
         }
       }
     }
