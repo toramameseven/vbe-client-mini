@@ -102,9 +102,7 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, isUseFromModule,
         If  fileExtension = "bas" Then
             Call vBComponents.Import (objFile.Path)
         ElseIf fileExtension = "frm" Then
-            If isUseFromModule Then
-                Call vBComponents.Import (objFile.Path)
-            End If
+            Call importFormModule(vBComponents, objFile.Path, isUseFromModule)
         ElseIf (fileExtension = "cls") Then
             importCodeToExcelObjects excelBookPath, objFile.Path, isUseSheetModule
         End If
@@ -124,7 +122,7 @@ Public Function importCodeToExcelObjects(excelBookPath, modulePath, isUseSheetMo
     Dim fileContent
     fileContent = sourceFile.ReadAll
     Dim className
-    className = fso.GetBaseName(modulePath)
+    className = fso.GetBaseName(modulePath) 'filename without .ext
     sourceFile.Close
     Set sourceFile = Nothing
     set fso = Nothing
@@ -152,6 +150,28 @@ Public Function importCodeToExcelObjects(excelBookPath, modulePath, isUseSheetMo
 
     Set book = Nothing
     Set vbComponent = Nothing
+End Function
+
+Public Function importFormModule(vBComponents, modulePath, isOptionImport)
+    If isOptionImport = False Then
+        Exit Function
+    End if
+
+    Call vBComponents.Import (modulePath)
+
+    Dim fso    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Dim moduleName
+    moduleName = fso.GetBaseName(modulePath) 'filename without .ext
+
+    With VBComponents(moduleName).CodeModule
+        If .CountOfLines <= 1 Then
+            Exit Function
+        End IF
+        If Trim(.Lines(1, 1)) = "" Then
+            Call .DeleteLines(1, 1)
+        End if
+    End With
 End Function
 
 

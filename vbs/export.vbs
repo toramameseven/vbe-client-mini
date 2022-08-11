@@ -137,7 +137,7 @@ Function ExportSheetModule(filePath, contents)
     Set objFS = CreateObject("Scripting.FileSystemObject")
     Dim objFile
     Set objFile = objFS.CreateTextFile(strFile)
-    objFile.WriteLine(contents)
+    objFile.Write(contents)
     objFile.Close
 End Function
 

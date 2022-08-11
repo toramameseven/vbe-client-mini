@@ -46,8 +46,11 @@ $ vsce publish
 
 ## Known problems
 
-* At cjk language area, vbs message not work good beside Japanese.
+* At cjk language area, vbs message not work good beside Japanese. Please customize your encode.
 * Sometimes, Excel remain on background. You should kill the process on a task manager.
+* When you export modules, vbecm asks "Do you want to exprot" in notification window.
+  Unless you click Yes or No, you can not select next command.
+* Sometimes, you meet export or import error. So you recover from a backup file.
 
 ## Release Notes
 

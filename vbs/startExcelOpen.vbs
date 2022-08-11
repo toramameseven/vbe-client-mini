@@ -47,11 +47,23 @@ Function OpenExcelFile(bookPath)
   objExcel.visible = True
   On Error Goto 0
 
-  '' check, is open target Excel file
+  '' check, is open target Excel file 
   Dim fso
   Set fso = createObject("Scripting.FileSystemObject")
   Dim bookName
   bookName = fso.GetFileName(bookPath)
+
+  '' if xlam and no book, create new book.
+  Dim ext
+  Dim bookTemp
+  ext = LCase(fso.GetExtensionName(bookPath)) ' without dot extension
+  DebugWriteLine "ext", ext
+  DebugWriteLine "Workbooks", objExcel.Workbooks.Count
+  If objExcel.Workbooks.Count = 0  and ext = "xlam" Then
+    set bookTemp = objExcel.Workbooks.Add()
+    DebugWriteLine "", "add book"
+  End if
+
   Dim wb, IsOpenFile
   IsOpenFile = False
   For Each wb in objExcel.Workbooks
@@ -95,6 +107,10 @@ Function DeleteFilesInFolder(folderPath)
         fso.DeleteFile folderPath & "\" & objFile.Name
     Next
 End Function
+
+Sub DebugWriteLine(title, value)
+    WScript.StdOut.WriteLine "DEBUG:: " & title & " : " & value
+End Sub
 
 
 

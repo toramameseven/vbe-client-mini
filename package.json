@@ -20,6 +20,7 @@
   ],
   "activationEvents": [
     "workspaceContains:**/*.xlsm",
+    "workspaceContains:**/*.xlam",
     "workspaceContains:**/*.cls",
     "workspaceContains:**/*.bas",
     "workspaceContains:**/*.frm"
@@ -29,11 +30,11 @@
     "commands": [
       {
         "command": "command.export",
-        "title": "export vba modules"
+        "title": "Export vba modules"
       },
       {
         "command": "command.import",
-        "title": "import vba modules"
+        "title": "Import vba modules"
       },
       {
         "command": "command.compile",
@@ -45,7 +46,7 @@
       },
       {
         "command": "editor.commit",
-        "title": "Commit vba modules"
+        "title": "Commit all vba modules"
       }
     ],
     "menus": {
