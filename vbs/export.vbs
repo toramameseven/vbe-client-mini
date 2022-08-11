@@ -50,7 +50,6 @@ If isAllExport Then
 End if
 DeleteFilesInFolder dirModulesCurrent
 
-
 '' from startExcelOpen.vbs
 OpenExcelFile bookPath
 
@@ -75,6 +74,7 @@ Dim sheetObjContents
 dim modulePath
 dim modulePathBase
 dim modulePathCurrent
+
 For Each vbComponent In VBComponents
     If vbComponent.CodeModule.CountOfLines > 0 Then
     

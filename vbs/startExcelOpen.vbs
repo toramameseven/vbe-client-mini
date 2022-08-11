@@ -76,6 +76,7 @@ Function OpenExcelFile(bookPath)
   '' get book instance
   On Error Resume Next
   Dim myWorkBook
+  DebugWriteLine "bookPath", bookPath
   If IsOpenFile = False Then
     Set myWorkBook = objExcel.Workbooks.Open(bookPath)
   Else
@@ -83,7 +84,7 @@ Function OpenExcelFile(bookPath)
   End if
 
   If Err.Number <> 0 OR myWorkBook Is Nothing Then
-    WScript.StdErr.WriteLine "Can not Open objExcel File"
+    WScript.StdErr.WriteLine "Can not Get Excel Book."
     Set objExcel = Nothing
     WScript.Quit(10)
   End If
@@ -109,7 +110,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    WScript.StdOut.WriteLine "DEBUG:: " & title & " : " & value
+    '' WScript.StdOut.WriteLine "DEBUG:: " & title & " : " & value
 End Sub
 
 

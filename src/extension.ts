@@ -16,162 +16,202 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "vbe-client-mini" is now active!');
 
   displayMenu(true);
-  // get vbs module path
-  const rootFolder = path.dirname(path.dirname(__filename));
-  const vbsPath = path.resolve(rootFolder, "vbs");
 
-
-  const isUseFormModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useFormModule');
-  const isUseSheetModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useSheetModule');
+  // const isUseFormModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useFormModule');
+  // const isUseSheetModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useSheetModule');
   
-
-
-  // // test   //vbatx.test
-  // const commandTest = vscode.commands.registerCommand(
-  //   'vbatx.test', 
-  //   (uri:vscode.Uri) => {
-  //     const path1 = 'C:\\projects\\toramame-hub\\xy\\xlsms\\src_macroTest.xlsm\\.base';
-  //     const path2 = 'C:\\projects\\toramame-hub\\xy\\xlsms\\src_macroTest.xlsm\\.current';
-  //     doDiff(path1, path2);
-  //   });
-  // context.subscriptions.push(commandTest);
-
   // export
   const commandExport = vscode.commands.registerCommand(
     'command.export', 
-    async (uri:vscode.Uri) => {
-      displayMenu(false);
-      const exportModulesVbs = path.resolve(vbsPath, 'export.vbs');
-      const xlsmFile = uri.fsPath;
-
-      const fileDir = path.dirname(xlsmFile);
-      const baseName = path.basename(xlsmFile);
-      const srcDir = path.resolve(fileDir,'src_' + baseName);
-
-      const isExist = await dirExists(srcDir);
-      if (isExist){
-        const ans = await vscode.window.showInformationMessage("Already exported. Do you want to export?", "Yes", "No");
-        if (ans === 'No'){
-          displayMenu(true);
-          return;
-      }}
-
-      const {err, status} = runVbs([exportModulesVbs, xlsmFile] );
-
-      if (status !== 0 || err){
-        vscode.window.showErrorMessage(err);
-      } else {
-        vscode.window.showInformationMessage("Success export");
-      }
-      displayMenu(true);
-    });
-
+    exportModuleAsync
+  );
   context.subscriptions.push(commandExport);
 
-  // commit
+  // import
   const commandImport = vscode.commands.registerCommand(
     'command.import', 
-    (uri:vscode.Uri) => {
-      displayMenu(false);
-      console.log(uri.fsPath);
-      const importModulesVbs = path.resolve(vbsPath, 'import.vbs');
-      const xlsmFile = uri.fsPath;
-
-      const isImportForm = isUseFormModule() ? 'True':'False';
-      const isImportSheet = isUseSheetModule() ? 'True':'False';
-      
-      const {err, status} = runVbs([importModulesVbs, xlsmFile, isImportForm, isImportSheet] );
-
-      if (status !== 0 || err){
-        vscode.window.showErrorMessage(err);
-      } else {
-        vscode.window.showInformationMessage("Success import");
-      }
-      displayMenu(true);
-    });
+    importModuleAsync
+  );
   context.subscriptions.push(commandImport);
 
   // compile
   const commandCompile = vscode.commands.registerCommand(
     'command.compile', 
-    (uri:vscode.Uri) => {
-      displayMenu(false);
-      console.log(uri.fsPath);
-      const compileVbs = path.resolve(vbsPath, 'compile.vbs');
-      const xlsmFile = uri.fsPath;
-  
-      const {err, status} = runVbs([compileVbs, xlsmFile] );
-  
-      if (status !== 0 || err){
-        vscode.window.showErrorMessage(err);
-      } else {
-        vscode.window.showInformationMessage("Success compile");
-      }
-      displayMenu(true);
-    }
+    compile
   );
   context.subscriptions.push(commandCompile);
 
-  
   // run
   const commandRun = vscode.commands.registerTextEditorCommand (
     'editor.run', 
-    async (textEditor: TextEditor, edit: vscode.TextEditorEdit, uri:vscode.Uri) => {
-      displayMenu(false);
-      // excel file path
-      const dirVbeModule = path.basename(uri.fsPath).slice(".xlsm".length);
-      const xlsmFile = await getExcelPathFromModule(uri);
-
-      // sub function
-      const activeLine = textEditor.document.lineAt(textEditor.selection.active.line).text;
-      const vbaSub = activeLine.match(/Sub (.*)\(\s*\)/i);
-      const funcName = vbaSub !== null && vbaSub.length === 2 && vbaSub[1];
-      const runModulesVbs = path.resolve(vbsPath, 'runVba.vbs');
-
-      if (funcName){
-        const {err, status} = runVbs([runModulesVbs, xlsmFile, funcName] );
-
-        if (status !== 0 || err){
-          vscode.window.showErrorMessage(err);
-        } else {
-          //vscode.window.showInformationMessage("file commit");
-        }
-      }
-      else{
-        console.log('No sub function is selected.');
-      }
-      displayMenu(true);
-    });
+    runAsync
+  );
   context.subscriptions.push(commandRun);
 
   // commit form editor
   const commandCommit = vscode.commands.registerCommand(
     'editor.commit', 
-    async (uri:vscode.Uri) => {
-      displayMenu(false);
-      const importModulesVbs = path.resolve(vbsPath,'import.vbs');
-      const xlsmFile = await getExcelPathFromModule(uri);
-      
-      const isImportForm = isUseFormModule() ? 'True':'False';
-      const isImportSheet = isUseSheetModule() ? 'True':'False';
-      
-      const {err, status} = runVbs([importModulesVbs, xlsmFile, isImportForm, isImportSheet] );
-
-      if (status !== 0){
-        vscode.window.showErrorMessage(err);
-      } else {
-        vscode.window.showInformationMessage("file commit");
-      }
-      displayMenu(true);
-    });
+    commitAsync
+  );
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
 
+const exportModuleAsync = async (uri:vscode.Uri) => {
+  displayMenu(false);
+
+  const xlsmPath = uri.fsPath;
+  const fileDir = path.dirname(xlsmPath);
+  const baseName = path.basename(xlsmPath);
+  const srcDir = path.resolve(fileDir,'src_' + baseName);
+  
+  // test already exported
+  const isExist = await dirExists(srcDir);
+  if (isExist){
+    const ans = await vscode.window.showInformationMessage("Already exported. Do you want to export?", "Yes", "No");
+    if (ans === 'No'){
+      displayMenu(true);
+      return;
+    }
+  }
+
+  // test number of modules
+  // const moduleCountSrc = getSrcModules(srcDir);
+  // const moduleCountVbe = getVbeModules(xlsmPath);
+  // if (moduleCountSrc !== moduleCountVbe){
+  //   const ans = await vscode.window.showInformationMessage(`Modules is not same between vbe(${moduleCountSrc}) and src(${moduleCountVbe}). Do you force?`, "Yes", "No");
+  //   if (ans === 'No'){
+  //     displayMenu(true);
+  //     return;
+  //   }
+  // }
+  if (await testModulesAndForce(srcDir,xlsmPath)){
+    //
+  }else{
+    return;
+  }
+  
+  // export
+  const {err, status} = runVbs('export.vbs',[xlsmPath]);
+  if (status !== 0 || err){
+    vscode.window.showErrorMessage(err);
+  } else {
+    showInformationMessage("Success export.");
+  }
+  displayMenu(true);
+};
+
+
+const testModulesAndForce = async (srcDir: string, xlsmPath: string): Promise<boolean> =>{
+  const moduleCountSrc = getSrcModules(srcDir);
+  const moduleCountVbe = getVbeModules(xlsmPath);
+  if (moduleCountSrc !== moduleCountVbe){
+    const ans = await vscode.window.showInformationMessage(`Modules is not same between vbe(${moduleCountVbe}) and src(${moduleCountSrc}). Do you force?`, "Yes", "No");
+    if (ans === 'No'){
+      displayMenu(true);
+      return false;
+    }
+  }
+  return true;
+};
+
+const importModuleAsync = async (uri:vscode.Uri) => {
+  displayMenu(false);
+  //console.log(uri.fsPath);
+  const xlsmPath = uri.fsPath;
+  const fileDir = path.dirname(xlsmPath);
+  const baseName = path.basename(xlsmPath);
+  const srcDir = path.resolve(fileDir,'src_' + baseName);
+
+  if (await testModulesAndForce(srcDir,xlsmPath)){
+    //
+  }else{
+    return;
+  }
+
+  const modulePath = '';
+  const {err, status} = runVbs('import.vbs', [xlsmPath, modulePath]);
+
+  if (status !== 0 || err){
+    vscode.window.showErrorMessage(err);
+  } else {
+    showInformationMessage("Success import.");
+  }
+  displayMenu(true);
+};
+
+const compile = (uri:vscode.Uri) => {
+  displayMenu(false);
+  console.log(uri.fsPath);
+  const compileVbs = path.resolve(getVbsPath(), 'compile.vbs');
+  const xlsmPath = uri.fsPath;
+
+  const {err, status} = runVbs('compile.vbs', [xlsmPath]);
+
+  if (status !== 0 || err){
+    vscode.window.showErrorMessage(err);
+  } else {
+    showInformationMessage("Success compile.");
+  }
+  displayMenu(true);
+};
+
+const runAsync = async (textEditor: TextEditor, edit: vscode.TextEditorEdit, uri:vscode.Uri) => {
+  displayMenu(false);
+  // excel file path
+  const xlsmPath = await getExcelPathFromModule(uri);
+
+  // sub function
+  const activeLine = textEditor.document.lineAt(textEditor.selection.active.line).text;
+  const vbaSub = activeLine.match(/Sub (.*)\(\s*\)/i);
+  const funcName = vbaSub !== null && vbaSub.length === 2 && vbaSub[1];
+
+  if (funcName){
+    const {err, status} = runVbs('runVba.vbs', [xlsmPath, funcName] );
+
+    if (status !== 0 || err){
+      vscode.window.showErrorMessage(err);
+    } else {
+      showInformationMessage("Success run.");
+    }
+  }
+  else{
+    console.log('No sub function is selected.');
+  }
+  displayMenu(true);
+};
+
+const commitAsync = async (uri:vscode.Uri) => {
+  displayMenu(false);
+  const importModulesVbs = path.resolve(getVbsPath(),'import.vbs');
+  const xlsmPath = await getExcelPathFromModule(uri);
+  const modulePath = uri.fsPath;
+  
+  const {err, status} = runVbs('import.vbs',[xlsmPath, modulePath] );
+
+  if (status !== 0){
+    vscode.window.showErrorMessage(err);
+  } else {
+    showInformationMessage("Success commit.");
+  }
+  displayMenu(true);
+};
+
 
 /**
  * 
+ * @param message 
+ */
+const showInformationMessage =(message: string) =>{
+  const date = new Date();
+  const dateString = date.getHours().toString().padStart(2,"0") + ":" + date.getMinutes().toString().padStart(2,"0");
+  vscode.window.showInformationMessage(dateString + " , " + message);
+};
+
+
+/**
+ * get Excel path
  * @param uri 
  * @returns 
  */
@@ -185,6 +225,7 @@ const getExcelPathFromModule = async (uri:vscode.Uri)  => {
 
   return isFile ? xlsPath : '';
 };
+
 
 /**
  * set display vbe menu on or off
@@ -208,6 +249,11 @@ async function fileExists(filepath: string) {
   }
 }
 
+/**
+ * test dir exists
+ * @param filepath
+ * @returns 
+ */
 async function dirExists(filepath: string) {
   try {
     const res = (await fs.promises.lstat(filepath)).isDirectory();
@@ -222,16 +268,16 @@ async function dirExists(filepath: string) {
  * @param param vbs, ...params
  * @returns messages
  */
-const runVbs = (param:string[]) =>{
-  console.log(param);
-  const spawn = require( 'child_process').spawnSync,
-  vbs = spawn( 'cscript.exe', ['//Nologo', ...param] );
+const runVbs = (script: string, param:string[]) =>{
+  //console.log(param);
+  const scriptPath = path.resolve(getVbsPath(), script);
+  const spawn = require('child_process').spawnSync,
+  vbs = spawn('cscript.exe', ['//Nologo', scriptPath, ...param] );
   const err = s2u(vbs.stderr);
   const out = s2u(vbs.stdout);
   console.log( `stderr: ${err}` );
   console.log( `stdout: ${out}` );
   console.log( `status: ${vbs.status}` );
-
   return {err, out,  status: vbs.status};
 };
 
@@ -240,4 +286,25 @@ const runVbs = (param:string[]) =>{
 const s2u = (sb: Buffer) =>{
   const vbsEncode = vscode.workspace.getConfiguration('vbecm').get<string>('vbsEncode') || 'windows-31j';
   return iconv.decode(sb, vbsEncode);
+};
+
+const getSrcModules = (dirPath: string) => {
+  const allDirents = fs.readdirSync(dirPath, { withFileTypes: true });
+  const count = allDirents.filter((file) => path.extname(file.name).match(/^\.cls$|^\.bas$|^\.frm$/) && file.isFile).length;
+  return count;
+};
+
+const getVbeModules = (xlsmPath : string) : number =>{
+  const a= runVbs('getModules.vbs',[xlsmPath]);
+  if (a.status !== 0 || a.err){
+    return -1;
+  } else {
+    return parseInt(a.out, 10);
+  }
+};
+
+const getVbsPath = () =>{
+  const rootFolder = path.dirname(path.dirname(__filename));
+  const vbsPath = path.resolve(rootFolder, "vbs");
+  return vbsPath;
 };

@@ -11,14 +11,16 @@ projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFull
 
 '' get book path
 Dim bookPath
+'' if modulePath is empty, import all modules
+Dim modulePath
 Dim isUseFromModule
 Dim isUseSheetModule
+modulePath = ""
 isUseFromModule = True
 isUseSheetModule = True
-If WScript.Arguments.Count = 3 Then
+If WScript.Arguments.Count = 2 Then
     bookPath = WScript.Arguments(0)
-    isUseFromModule = WScript.Arguments(1)
-    isUseSheetModule = WScript.Arguments(2)
+    modulePath = WScript.Arguments(1)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
@@ -42,8 +44,11 @@ End If
 On Error Goto 0
 
 On Error Resume Next
-'' delete all modules form xlsm
-Call DeleteVbaModules(book, isUseFromModule, isUseSheetModule)
+'' delete modules form xlsm
+Dim moduleName
+moduleName = fso.GetBaseName(modulePath) 'filename without .ext
+Call DeleteVbaModules(book, moduleName, isUseFromModule, isUseSheetModule)
+
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not delete modules: " & fso.GetFileName(bookPath)
     book.Close
@@ -56,56 +61,64 @@ Dim moduleFolderPath
 moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
 
 ''' Import VBA module files
-Call importVbaModules(fso.GetFolder(moduleFolderPath), book, bookPath, isUseFromModule, isUseSheetModule)
+Call importVbaModules(fso.GetFolder(moduleFolderPath), book, bookPath, modulePath, isUseFromModule, isUseSheetModule)
 
 book.Save
 WScript.StdOut.WriteLine "Import Complete"
 WScript.Quit(0)
 
 
-''///////////////////////////  
-Function DeleteVbaModules(book, isUseFromModule, isUseSheetModule)
+''///////////////////////////
+'' if moduleName is empty, delete all modules.
+Function DeleteVbaModules(book, moduleName, isUseFromModule, isUseSheetModule)
     Dim vBComponents 
     Set vBComponents = book.VBProject.VBComponents
     
     Dim vbComponent 
     For Each vbComponent In vBComponents
-        If vbComponent.Type = 100 Then
-            If isUseSheetModule Then
-                vbComponent.CodeModule.DeleteLines 1, vbComponent.CodeModule.CountOfLines
-            End If
-        ElseIf vbComponent.Type = 3Then
-            If isUseFromModule Then
+        If (moduleName = "" Or LCase(moduleName) = LCase(vbComponent.Name)) Then
+            If vbComponent.Type = 100 Then
+                If isUseSheetModule Then
+                    vbComponent.CodeModule.DeleteLines 1, vbComponent.CodeModule.CountOfLines
+                End If
+            ElseIf vbComponent.Type = 3Then
+                If isUseFromModule Then
+                    vBComponents.Remove vbComponent
+                End If
+            Else
+                '' 2(cls), 1(bas)
                 vBComponents.Remove vbComponent
             End If
-        Else
-            '' 2(cls), 1(bas)
-            vBComponents.Remove vbComponent
         End If
     Next 
 End Function
 
-Public Sub importVbaModules(modulesFolder, book, excelBookPath, isUseFromModule, isUseSheetModule)
+'' if modulePath is empty, import all modules.
+Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUseFromModule, isUseSheetModule)
     'As VBIDE.VBComponents
     Dim vBComponents
     Set vBComponents = book.VBProject.VBComponents
     
     Dim fso    
     Set fso = CreateObject("Scripting.FileSystemObject")
-    
+
+    Dim moduleFileName
+    moduleFileName = LCase(fso.GetFileName(modulePath))
+
     On Error Resume Next
     Dim objFile
     Dim fileExtension
     For Each objFile In fso.GetFolder(modulesFolder).Files
-        
-        fileExtension = LCase(fso.GetExtensionName(objFile.Name))
-        If  fileExtension = "bas" Then
-            Call vBComponents.Import (objFile.Path)
-        ElseIf fileExtension = "frm" Then
-            Call importFormModule(vBComponents, objFile.Path, isUseFromModule)
-        ElseIf (fileExtension = "cls") Then
-            importCodeToExcelObjects excelBookPath, objFile.Path, isUseSheetModule
-        End If
+        If moduleFileName = LCase(objFile.Name) Or moduleFileName = "" Then
+          fileExtension = LCase(fso.GetExtensionName(objFile.Name))
+          If  fileExtension = "bas" Then
+              Call vBComponents.Import (objFile.Path)
+          ElseIf fileExtension = "frm" Then
+              Call importFormModule(vBComponents, objFile.Path, isUseFromModule)
+          ElseIf (fileExtension = "cls") Then
+              importCodeToExcelObjects excelBookPath, objFile.Path, isUseSheetModule
+          End If
+        End if
     Next
 
     Set modulesFolder = Nothing
