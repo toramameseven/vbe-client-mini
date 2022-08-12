@@ -29,7 +29,7 @@ Function OpenExcelFile(bookPath)
   IsRunExcel = True
   If Err.Number <> 0 OR objExcel Is Nothing Then
     IsRunExcel = False
-    WScript.StdOut.WriteLine "not run objExcel"
+    ''WScript.StdOut.WriteLine "not run objExcel"
   End If
   On Error Goto 0
 

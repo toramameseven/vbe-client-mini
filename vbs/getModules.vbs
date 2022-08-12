@@ -48,8 +48,8 @@ Set VBComponents = book.VBProject.VBComponents
 Dim count
 count = VBComponents.Count
 
+WScript.StdOut.WriteLine count
 Set book = Nothing
 Set objExcel = Nothing
 Set fso = Nothing
-WScript.StdOut.WriteLine count
 WScript.Quit(0)
