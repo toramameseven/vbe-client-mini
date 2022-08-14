@@ -12,6 +12,7 @@ Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\sta
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
 Dim bookPath
+
 '' if empty, export all modules.
 '' if set, export modulePath module
 '' module include sht.cls
@@ -35,17 +36,20 @@ Else
     isAllExport = 0
     modulePathSelect = ""
 End If
+isAllExport = 0
 
+'' debug output information
 DebugWriteLine "bookPath", bookPath
 DebugWriteLine "isAllExport", isAllExport
 DebugWriteLine "modulePathSelect", modulePathSelect
-
 
 If fso.FileExists(bookPath) = False Then
     WScript.StdEr.WriteLine "File does not exists: " & fso.GetFileName(bookPath) 
     WScript.Quit(10)
 End If
 
+On Error Resume Next
+'' create export folders
 Dim dirModules
 dirModules = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath)
 Dim dirModulesBase
@@ -55,17 +59,36 @@ dirModulesCurrent = dirModules & "\.current"
 
 CreateFolder dirModules
 ''for commit check, if dirModulesBase files differ from dirModulesCurrent, dirModulesCurrent is modified.
-CreateFolder dirModulesBase
-CreateFolder dirModulesCurrent
+'CreateFolder dirModulesBase
+'CreateFolder dirModulesCurrent
 
-'' clear folder
-If isAllExport Then
-    DeleteFilesInFolder dirModules
-    DeleteFilesInFolder dirModulesBase
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can not Create folders"
+    WScript.Quit(Err.Number)
+End If
+'On Error Goto 0
+
+
+On Error Resume Next
+If modulePathSelect = "" Then
+  '' clear folder
+  If isAllExport Then
+      DeleteFilesInFolder dirModulesBase
+      DeleteFilesInFolder dirModulesCurrent
+  End if
+  DeleteFilesInFolder dirModules
 End if
-DeleteFilesInFolder dirModulesCurrent
+
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can not delete module files."
+    WScript.StdErr.WriteLine Err.description
+    WScript.Quit(Err.Number)
+End If
+On Error Goto 0
+
 
 '' from startExcelOpen.vbs
+On Error Resume Next
 OpenExcelFile bookPath
 
 Dim book
@@ -73,12 +96,19 @@ Set book = GetObject(bookPath)
 Dim objExcel 
 set objExcel = book.Application
 
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can Not Open Excel File."
+    WScript.Quit(Err.Number)
+End If
+On Error Goto 0
+
+
 '' export modules
 
-If book.VBProject.Protection <> 0 Then
-    set objExcel = Nothing
-    WScript.Quit(10)
-end If
+' If book.VBProject.Protection <> 0 Then
+'     set objExcel = Nothing
+'     WScript.Quit(10)
+' end If
 
 Dim vbComponent
 Dim TypeOfModule
@@ -89,6 +119,8 @@ dim modulePath
 dim modulePathBase
 dim modulePathCurrent
 
+
+On Error Resume Next
 For Each vbComponent In VBComponents
 
     TypeOfModule = ResolveExtension(vbComponent.Type)
@@ -98,8 +130,6 @@ For Each vbComponent In VBComponents
 
     Dim isExport
     isExport = modulePathSelect = "" Or LCase(modulePath) = LCase(modulePathSelect)
-
-    DebugWriteLine "isExport; " & vbComponent.Name, isExport
 
     If vbComponent.CodeModule.CountOfLines > 0 And isExport Then
         If TypeOfModule = "" Then
@@ -123,6 +153,12 @@ For Each vbComponent In VBComponents
         DebugWriteLine "Next is not exported", vbComponent.Name
     End If
 Next
+
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can not Export or Checkout."
+    WScript.Quit(Err.Number)
+End If
+On Error Goto 0
 
 Set book = Nothing
 Set objExcel = Nothing

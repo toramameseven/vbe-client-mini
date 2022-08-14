@@ -67,8 +67,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommit);
   
-
-
   displayMenu(true);
   // update status bar item once at start
 	updateStatusBarItem(false);
@@ -119,7 +117,7 @@ const exportModuleAsync = async (uri:vscode.Uri) => {
   // export
   const {err, status} = runVbs('export.vbs',[xlsmPath]);
   if (status !== 0 || err){
-    vscode.window.showErrorMessage(err);
+    showErrorMessage(err);
   } else {
     showInformationMessage("Success export.");
   }
@@ -171,7 +169,7 @@ const importModuleAsync = async (uri:vscode.Uri) => {
   const {err, status} = runVbs('import.vbs', [xlsmPath, modulePath]);
 
   if (status !== 0 || err){
-    vscode.window.showErrorMessage(err);
+    showErrorMessage(err);
   } else {
     showInformationMessage("Success import.");
   }
@@ -187,7 +185,7 @@ const compile = (uri:vscode.Uri) => {
   const {err, status} = runVbs('compile.vbs', [xlsmPath]);
 
   if (status !== 0 || err){
-    vscode.window.showErrorMessage(err);
+    showErrorMessage(err);
   } else {
     showInformationMessage("Success compile.");
   }
@@ -208,7 +206,7 @@ const runAsync = async (textEditor: TextEditor, edit: vscode.TextEditorEdit, uri
     const {err, status} = runVbs('runVba.vbs', [xlsmPath, funcName] );
 
     if (status !== 0 || err){
-      vscode.window.showErrorMessage(err);
+      showErrorMessage(err);
     } else {
       showInformationMessage("Success run.");
     }
@@ -228,12 +226,14 @@ const commitAsync = async (uri:vscode.Uri) => {
   const {err, status} = runVbs('import.vbs',[xlsmPath, modulePath] );
 
   if (status !== 0){
-    vscode.window.showErrorMessage(err);
+    showErrorMessage(err);
   } else {
     showInformationMessage("Success commit.");
   }
   displayMenu(true);
 };
+
+
 /**
  * 
  * @param uri module path
@@ -258,12 +258,11 @@ const checkoutAsync = async (uri:vscode.Uri) => {
   // export
   const {err, status} = runVbs('export.vbs',[xlsmPath, '0', modulePath]);
   if (status !== 0 || err){
-    vscode.window.showErrorMessage(err);
+    showErrorMessage(err);
   } else {
     showInformationMessage("Success checkout.");
   }
   displayMenu(true);
-
 };
 
 

@@ -98,6 +98,7 @@ End Function
 ''DeleteFilesInFolder "C:\projects\toramame-hub\xy\xlsms\src_macroTest.xlsm"
 
 Function DeleteFilesInFolder(folderPath)
+    DebugWriteLine "To Removed", folderPath
     If folderPath = "" Then
         Exit Function
     End if
@@ -105,8 +106,11 @@ Function DeleteFilesInFolder(folderPath)
     Set fso = CreateObject("Scripting.FileSystemObject")
     Set objFolder = fso.GetFolder(folderPath)
     Dim objFile
+    Dim objFileName
     For each objFile in objFolder.files
-        fso.DeleteFile folderPath & "\" & objFile.Name
+        objFileName = objFile.Name
+        fso.DeleteFile folderPath & "\" & objFileName
+        DebugWriteLine "Removed", objFileName
     Next
 End Function
 
