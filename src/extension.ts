@@ -81,7 +81,7 @@ export function deactivate() {}
 // status bar
 function updateStatusBarItem(isVbaWork: boolean): void {
 	if (isVbaWork) {
-		statusBarVba.text = `[Vba Working]`;
+		statusBarVba.text = `[vbecm Working]`;
 		statusBarVba.show();
 	} else {
 		statusBarVba.hide();
