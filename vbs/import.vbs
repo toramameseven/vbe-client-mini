@@ -199,7 +199,7 @@ Public Function importClassModule(excelBookPath, modulePath, isUseSheetModule)
             fileContent = sourceFile.ReadAll
             sourceFile.Close
             Set sourceFile = Nothing
-            DebugWriteLine "Import shet cls Content", vbComponent.Name
+            DebugWriteLine "Import sheet cls Content", vbComponent.Name
             vbComponent.CodeModule.InsertLines 1, fileContent
         End If
     ElseIf isSrcSheetCls Then
