@@ -20,12 +20,15 @@ isUseFromModule = True
 isUseSheetModule = True
 If WScript.Arguments.Count = 2 Then
     bookPath = WScript.Arguments(0)
+    '' module path include xxxx.sht.cls
     modulePath = WScript.Arguments(1)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
+    modulePath = "C:\projects\toramame-hub\vbe-client-mini\xlsms\src_macrotest.xlsm\Module2.bas"
 End If
 
+'' 
 On Error Resume Next
 
 '' from startExcelOpen.vbs
@@ -37,7 +40,7 @@ Dim objExcel
 Set objExcel = book.Application
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not Open Excel: " & fso.GetFileName(bookPath)
+    WScript.StdErr.WriteLine "Can not Open Excel: " & bookPath
     book.Close
     WScript.Quit(Err.Number)
 End If
@@ -45,34 +48,45 @@ On Error Goto 0
 
 On Error Resume Next
 '' delete modules form xlsm
-Dim moduleName
-moduleName = fso.GetBaseName(modulePath) 'filename without .ext
-Call DeleteVbaModules(book, moduleName, isUseFromModule, isUseSheetModule)
+
+Call DeleteVbaModules(book, modulePath, isUseFromModule, isUseSheetModule)
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not delete modules: " & fso.GetFileName(bookPath)
-    book.Close
+    WScript.StdErr.WriteLine "Can not delete modules: " & bookPath
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
+
 
 '' get modules folder
 Dim moduleFolderPath
 moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
 
+On Error Resume Next
 ''' Import VBA module files
 Call importVbaModules(fso.GetFolder(moduleFolderPath), book, bookPath, modulePath, isUseFromModule, isUseSheetModule)
-
 book.Save
+
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can not import modules: " & bookPath
+    DebugWriteLine "importVbaModules Err", Err.description
+    WScript.Quit(Err.Number)
+End If
+On Error Goto 0
+
 WScript.StdOut.WriteLine "Import Complete"
 WScript.Quit(0)
 
 
 ''///////////////////////////
 '' if moduleName is empty, delete all modules.
-Function DeleteVbaModules(book, moduleName, isUseFromModule, isUseSheetModule)
+Function DeleteVbaModules(book, modulePath, isUseFromModule, isUseSheetModule)
     Dim vBComponents 
     Set vBComponents = book.VBProject.VBComponents
+
+    Dim moduleName
+    Dim isSrcSheetCls
+    moduleName = GetModuleName(modulePath, isSrcSheetCls) 'filename without .ext
     
     Dim vbComponent 
     For Each vbComponent In vBComponents
@@ -80,13 +94,16 @@ Function DeleteVbaModules(book, moduleName, isUseFromModule, isUseSheetModule)
             If vbComponent.Type = 100 Then
                 If isUseSheetModule Then
                     vbComponent.CodeModule.DeleteLines 1, vbComponent.CodeModule.CountOfLines
+                    DebugWriteLine "Delete Content",vbComponent.Name
                 End If
-            ElseIf vbComponent.Type = 3Then
+            ElseIf vbComponent.Type = 3 Then
                 If isUseFromModule Then
+                    DebugWriteLine "Remove vbComponent",vbComponent.Name
                     vBComponents.Remove vbComponent
                 End If
             Else
                 '' 2(cls), 1(bas)
+                DebugWriteLine "Remove vbComponent",vbComponent.Name
                 vBComponents.Remove vbComponent
             End If
         End If
@@ -102,21 +119,27 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
     Dim fso    
     Set fso = CreateObject("Scripting.FileSystemObject")
 
-    Dim moduleFileName
-    moduleFileName = LCase(fso.GetFileName(modulePath))
+    '' xxxx.sht.cls must convert to xxx
+    Dim moduleName
+    moduleName = ""
+    If excelBookPath <> "" Then
+      moduleName = LCase(fso.GetFileName(modulePath))
+    End If
 
-    On Error Resume Next
     Dim objFile
     Dim fileExtension
     For Each objFile In fso.GetFolder(modulesFolder).Files
-        If moduleFileName = LCase(objFile.Name) Or moduleFileName = "" Then
+        '' selected module or all modules
+        If moduleName = LCase(objFile.Name) Or moduleName = "" Then
           fileExtension = LCase(fso.GetExtensionName(objFile.Name))
           If  fileExtension = "bas" Then
               Call vBComponents.Import (objFile.Path)
+              DebugWriteLine "Import bas module", objFile.Path
           ElseIf fileExtension = "frm" Then
               Call importFormModule(vBComponents, objFile.Path, isUseFromModule)
           ElseIf (fileExtension = "cls") Then
-              importCodeToExcelObjects excelBookPath, objFile.Path, isUseSheetModule
+              '' cls file include a normal cls or sheet cls
+              importClassModule excelBookPath, objFile.Path, isUseSheetModule
           End If
         End if
     Next
@@ -125,20 +148,35 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
     Set objFile = Nothing
 End Sub
 
-'' import sheet module or book module
-Public Function importCodeToExcelObjects(excelBookPath, modulePath, isUseSheetModule)
+
+Function GetModuleName(modulePath, refIsSheetClass)
+    '' sheet module is exported with .sht.cls
+    '' test this extension
     Dim fso    
     Set fso = CreateObject("Scripting.FileSystemObject")
 
-    Dim sourceFile
-    Set sourceFile  = fso.OpenTextFile(modulePath)
-    Dim fileContent
-    fileContent = sourceFile.ReadAll
-    Dim className
-    className = fso.GetBaseName(modulePath) 'filename without .ext
-    sourceFile.Close
-    Set sourceFile = Nothing
-    set fso = Nothing
+    Dim withoutFirstExt
+    withoutFirstExt = fso.GetBaseName(modulePath) 'filename without .ext
+    GetModuleName = withoutFirstExt
+
+    Dim secondExt
+    secondExt = LCase(fso.GetExtensionName(withoutFirstExt))
+    
+    refIsSheetClass = secondExt = "sht"
+    If refIsSheetClass  Then
+      GetModuleName = fso.GetBaseName(withoutFirstExt)
+    End If
+End Function
+
+'' import class module
+Public Function importClassModule(excelBookPath, modulePath, isUseSheetModule)
+    Dim fso    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    '' check .sht.cls or normal.cls
+    Dim moduleName
+    Dim isSrcSheetCls
+    moduleName = GetModuleName(modulePath, isSrcSheetCls)
 
     Dim book
     Set book = GetObject(excelBookPath)
@@ -147,22 +185,34 @@ Public Function importCodeToExcelObjects(excelBookPath, modulePath, isUseSheetMo
     Dim IsSheet
     IsSheet = False
     For Each vbComponent in book.VBProject.VBComponents
-        If className = vbComponent.Name And vbComponent.Type = 100 Then
+        If moduleName = vbComponent.Name And vbComponent.Type = 100 Then
             IsSheet = True
             Exit For
         End if
     Next
 
-    If IsSheet then
+    If IsSheet and isSrcSheetCls then
         If isUseSheetModule Then
+            Dim sourceFile
+            Set sourceFile  = fso.OpenTextFile(modulePath)
+            Dim fileContent
+            fileContent = sourceFile.ReadAll
+            sourceFile.Close
+            Set sourceFile = Nothing
+            DebugWriteLine "Import shet cls Content", vbComponent.Name
             vbComponent.CodeModule.InsertLines 1, fileContent
         End If
+    ElseIf isSrcSheetCls Then
+        '' module is sheet cls, but the book has not the sheet name
+        '' do not import
     Else
+        DebugWriteLine "Import cls module", modulePath
         book.VBProject.VBComponents.Import modulePath
     End if
 
     Set book = Nothing
     Set vbComponent = Nothing
+    set fso = Nothing
 End Function
 
 Public Function importFormModule(vBComponents, modulePath, isOptionImport)
@@ -171,6 +221,7 @@ Public Function importFormModule(vBComponents, modulePath, isOptionImport)
     End if
 
     Call vBComponents.Import (modulePath)
+    DebugWriteLine "Import frm module", modulePath 
 
     Dim fso    
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -181,6 +232,8 @@ Public Function importFormModule(vBComponents, modulePath, isOptionImport)
         If .CountOfLines <= 1 Then
             Exit Function
         End IF
+
+        '' when import, one line is added. here delete the line. 
         If Trim(.Lines(1, 1)) = "" Then
             Call .DeleteLines(1, 1)
         End if

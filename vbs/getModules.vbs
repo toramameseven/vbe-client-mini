@@ -16,7 +16,7 @@ If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
 Else
     '' for debug
-    bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
+    bookPath = fso.BuildPath(projectRoot, "xlsms\macrotest.xlsm")
 End If
 
 If fso.FileExists(bookPath) = False Then

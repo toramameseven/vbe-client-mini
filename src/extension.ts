@@ -9,13 +9,18 @@ import { ConsoleReporter } from '@vscode/test-electron';
 import * as fs from 'fs'; 
 import * as iconv from 'iconv-lite';
 
+
+let statusBarVba: vscode.StatusBarItem;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   
   console.log('Congratulations, your extension "vbe-client-mini" is now active!');
 
-  displayMenu(true);
+  statusBarVba = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+	// statusBarVba.command = myCommandId;
+	context.subscriptions.push(statusBarVba);
 
   // const isUseFormModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useFormModule');
   // const isUseSheetModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useSheetModule');
@@ -53,10 +58,30 @@ export function activate(context: vscode.ExtensionContext) {
     'editor.commit', 
     commitAsync
   );
+  context.subscriptions.push(commandCommit);
+  
+
+
+  displayMenu(true);
+  // update status bar item once at start
+	updateStatusBarItem(false);
 }
+
+//End ------------------------------------------------------------------------
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+
+// status bar
+function updateStatusBarItem(isVbaWork: boolean): void {
+	if (isVbaWork) {
+		statusBarVba.text = `[Vba Working]`;
+		statusBarVba.show();
+	} else {
+		statusBarVba.hide();
+	}
+}
 
 const exportModuleAsync = async (uri:vscode.Uri) => {
   displayMenu(false);
@@ -74,24 +99,16 @@ const exportModuleAsync = async (uri:vscode.Uri) => {
       displayMenu(true);
       return;
     }
+
+    // test module count diff
+    if (await canExportOrImport(srcDir,xlsmPath)){
+      // go forward
+    }else{
+      displayMenu(true);
+      return;
+    }
   }
 
-  // test number of modules
-  // const moduleCountSrc = getSrcModules(srcDir);
-  // const moduleCountVbe = getVbeModules(xlsmPath);
-  // if (moduleCountSrc !== moduleCountVbe){
-  //   const ans = await vscode.window.showInformationMessage(`Modules is not same between vbe(${moduleCountSrc}) and src(${moduleCountVbe}). Do you force?`, "Yes", "No");
-  //   if (ans === 'No'){
-  //     displayMenu(true);
-  //     return;
-  //   }
-  // }
-  if (await testModulesAndForce(srcDir,xlsmPath)){
-    //
-  }else{
-    return;
-  }
-  
   // export
   const {err, status} = runVbs('export.vbs',[xlsmPath]);
   if (status !== 0 || err){
@@ -102,12 +119,12 @@ const exportModuleAsync = async (uri:vscode.Uri) => {
   displayMenu(true);
 };
 
-
-const testModulesAndForce = async (srcDir: string, xlsmPath: string): Promise<boolean> =>{
-  const moduleCountSrc = getSrcModules(srcDir);
-  const moduleCountVbe = getVbeModules(xlsmPath);
+const canExportOrImport = async (srcDir: string, xlsmPath: string): Promise<boolean> =>{
+  const moduleCountSrc = getCountSrcModules(srcDir);
+  const moduleCountVbe = getCountVbeModules(xlsmPath);
   if (moduleCountSrc !== moduleCountVbe){
-    const ans = await vscode.window.showInformationMessage(`Modules is not same between vbe(${moduleCountVbe}) and src(${moduleCountSrc}). Do you force?`, "Yes", "No");
+    const ans = await vscode.window.showInformationMessage(
+      `Modules is not same between vbe(${moduleCountVbe}) and src(${moduleCountSrc}). Do you force?`, "Yes", "No");
     if (ans === 'No'){
       displayMenu(true);
       return false;
@@ -124,9 +141,22 @@ const importModuleAsync = async (uri:vscode.Uri) => {
   const baseName = path.basename(xlsmPath);
   const srcDir = path.resolve(fileDir,'src_' + baseName);
 
-  if (await testModulesAndForce(srcDir,xlsmPath)){
-    //
+  const isSrcExist = await dirExists(srcDir);
+  if (!isSrcExist){
+    showErrorMessage(srcDir);
+    displayMenu(true);
+  }
+
+  const xlsExists = await fileExists(xlsmPath);
+  if (!xlsExists){
+    showErrorMessage(xlsmPath);
+    displayMenu(true);
+  }
+
+  if (await canExportOrImport(srcDir,xlsmPath)){
+    // go forward
   }else{
+    displayMenu(true);
     return;
   }
 
@@ -210,6 +240,13 @@ const showInformationMessage =(message: string) =>{
 };
 
 
+const showErrorMessage =(message: string) =>{
+  const date = new Date();
+  const dateString = date.getHours().toString().padStart(2,"0") + ":" + date.getMinutes().toString().padStart(2,"0");
+  vscode.window.showErrorMessage(dateString + " , " + message);
+};
+
+
 /**
  * get Excel path
  * @param uri 
@@ -220,9 +257,7 @@ const getExcelPathFromModule = async (uri:vscode.Uri)  => {
   const dirForBook = path.dirname(dirParent);
   const bookFileName = path.basename(path.dirname(uri.fsPath)).slice("src_".length);
   const xlsPath = path.resolve(dirForBook, bookFileName);
-
   const isFile = await fileExists(xlsPath);
-
   return isFile ? xlsPath : '';
 };
 
@@ -233,6 +268,7 @@ const getExcelPathFromModule = async (uri:vscode.Uri)  => {
  */
 const displayMenu = (isOn : boolean) =>{
   vscode.commands.executeCommand('setContext', 'vbecm.showVbsCommand', isOn);
+  updateStatusBarItem(!isOn);
 };
 
 /**
@@ -263,6 +299,9 @@ async function dirExists(filepath: string) {
   }
 }
 
+import {spawnSync} from 'child_process';
+
+type RunVbs = {err: string, out: string, retValue: string, status: number | null};
 /**
  * 
  * @param param vbs, ...params
@@ -270,15 +309,25 @@ async function dirExists(filepath: string) {
  */
 const runVbs = (script: string, param:string[]) =>{
   //console.log(param);
-  const scriptPath = path.resolve(getVbsPath(), script);
-  const spawn = require('child_process').spawnSync,
-  vbs = spawn('cscript.exe', ['//Nologo', scriptPath, ...param] );
-  const err = s2u(vbs.stderr);
-  const out = s2u(vbs.stdout);
-  console.log( `stderr: ${err}` );
-  console.log( `stdout: ${out}` );
-  console.log( `status: ${vbs.status}` );
-  return {err, out,  status: vbs.status};
+  try{
+    const scriptPath = path.resolve(getVbsPath(), script);
+    const vbs = spawnSync('cscript.exe', ['//Nologo', scriptPath, ...param] );
+    const err = s2u(vbs.stderr);
+    const out = s2u(vbs.stdout);
+    const retValue = out.split('\r\n').slice(-2)[0];
+    console.log( `>====================vbs run in=======================` );
+    console.log( `Script: ${scriptPath}` );
+    console.log( `stderr: ${err}` );
+    console.log( `stdout: ${out}` );
+    console.log( `retVal: ${retValue}` );
+    console.log( `status: ${vbs.status}` );
+    console.log( `====================vbs run out=======================` );
+    return {err, out, retValue, status: vbs.status} ;
+  }
+  catch (e : unknown){
+    const errMessage = (e instanceof Error) ? e.message : 'vbs run error.';
+    return {err: errMessage, out: '', retValue : '', status: 10};
+  }
 };
 
 // shift jis 2 utf8
@@ -288,18 +337,19 @@ const s2u = (sb: Buffer) =>{
   return iconv.decode(sb, vbsEncode);
 };
 
-const getSrcModules = (dirPath: string) => {
-  const allDirents = fs.readdirSync(dirPath, { withFileTypes: true });
-  const count = allDirents.filter((file) => path.extname(file.name).match(/^\.cls$|^\.bas$|^\.frm$/) && file.isFile).length;
+const getCountSrcModules = (dirPath: string) => {
+  const files = fs.readdirSync(dirPath, { withFileTypes: true });
+  const count = files.filter((file) => 
+    path.extname(file.name).match(/^\.cls$|^\.bas$|^\.frm$/) && file.isFile).length;
   return count;
 };
 
-const getVbeModules = (xlsmPath : string) : number =>{
-  const a= runVbs('getModules.vbs',[xlsmPath]);
-  if (a.status !== 0 || a.err){
+const getCountVbeModules = (xlsmPath : string) : number =>{
+  const retModuleCount = runVbs('getModules.vbs',[xlsmPath]);
+  if (retModuleCount.status !== 0 || retModuleCount.err){
     return -1;
   } else {
-    return parseInt(a.out, 10);
+    return parseInt(retModuleCount.retValue, 10);
   }
 };
 

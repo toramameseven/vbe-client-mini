@@ -113,7 +113,7 @@ Function ResolveExtension(cType)
         Case 1      : ResolveExtension = ".bas"
         Case 2      : ResolveExtension = ".cls"
         Case 3      : ResolveExtension = ".frm"
-        Case 100    : ResolveExtension = ".cls"        
+        Case 100    : ResolveExtension = ".sht.cls"        
         Case Else   : ResolveExtension = ""
     End Select
 End Function

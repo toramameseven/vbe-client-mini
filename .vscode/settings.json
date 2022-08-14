@@ -10,7 +10,8 @@
     "typescript.tsc.autoDetect": "off",
     "editor.tabSize": 2,
     "cSpell.enableFiletypes": [
-      "vb"
+      "vb",
+      "vba"
     ],
     "cSpell.words": [
       "clss",

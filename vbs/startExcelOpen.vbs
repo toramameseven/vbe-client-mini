@@ -1,11 +1,11 @@
 Option Explicit
 
-'' test
+''test
 ''TestFileOpen
 
 '' for debug
 Function TestFileOpen()
-    WScript.StdOut.WriteLine "run vbs"
+    WScript.StdOut.WriteLine "Test run vbs"
     Dim fso
     Set fso = createObject("Scripting.FileSystemObject")
     Dim projectRoot
@@ -21,15 +21,15 @@ Function TestFileOpen()
 End Function
 
 Function OpenExcelFile(bookPath)
-  '' is objExcel running
+  '' is objExcel running?
   Dim objExcel
   Dim IsRunExcel
   On Error Resume Next
   Set objExcel = GetObject(,"Excel.Application")
   IsRunExcel = True
   If Err.Number <> 0 OR objExcel Is Nothing Then
+    '' if false, launch excel
     IsRunExcel = False
-    ''WScript.StdOut.WriteLine "not run objExcel"
   End If
   On Error Goto 0
 
@@ -42,27 +42,29 @@ Function OpenExcelFile(bookPath)
   If Err.Number <> 0 OR objExcel Is Nothing Then
     WScript.StdErr.WriteLine "Can not run objExcel"
     objExcel = Nothing
-    WScript.Quit(10)
+    DebugWriteLine "CreateObject error", "Can not get excel instance"
+    WScript.Quit(100)
   End If
   objExcel.visible = True
-  On Error Goto 0
 
-  '' check, is open target Excel file 
   Dim fso
   Set fso = createObject("Scripting.FileSystemObject")
-  Dim bookName
-  bookName = fso.GetFileName(bookPath)
 
+  On Error Goto 0
   '' if xlam and no book, create new book.
   Dim ext
   Dim bookTemp
   ext = LCase(fso.GetExtensionName(bookPath)) ' without dot extension
-  DebugWriteLine "ext", ext
-  DebugWriteLine "Workbooks", objExcel.Workbooks.Count
-  If objExcel.Workbooks.Count = 0  and ext = "xlam" Then
+  DebugWriteLine "Workbooks in Excel", objExcel.Workbooks.Count
+  If objExcel.Workbooks.Count = 0 And ext = "xlam" Then
     set bookTemp = objExcel.Workbooks.Add()
-    DebugWriteLine "", "add book"
+    DebugWriteLine "Add book to Excel instance", ""
   End if
+
+  '' check, is open target Excel file 
+  Dim bookName
+  bookName = fso.GetFileName(bookPath)
+
 
   Dim wb, IsOpenFile
   IsOpenFile = False
@@ -76,7 +78,6 @@ Function OpenExcelFile(bookPath)
   '' get book instance
   On Error Resume Next
   Dim myWorkBook
-  DebugWriteLine "bookPath", bookPath
   If IsOpenFile = False Then
     Set myWorkBook = objExcel.Workbooks.Open(bookPath)
   Else
@@ -86,7 +87,7 @@ Function OpenExcelFile(bookPath)
   If Err.Number <> 0 OR myWorkBook Is Nothing Then
     WScript.StdErr.WriteLine "Can not Get Excel Book."
     Set objExcel = Nothing
-    WScript.Quit(10)
+    WScript.Quit(Err.Number)
   End If
   
   Set objExcel = Nothing
@@ -110,7 +111,17 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    '' WScript.StdOut.WriteLine "DEBUG:: " & title & " : " & value
+    Dim outTitle
+    Dim outValue
+    outTitle = title
+    outValue = value
+    If outTitle = "" Then
+        outTitle = "(_empty_)"
+    End if
+    If outValue = "" Then
+        outValue = "(_empty_)"
+    End if
+    WScript.StdOut.WriteLine "VBS:: " & outTitle & " : " & outValue
 End Sub
 
 
