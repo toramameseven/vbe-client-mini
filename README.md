@@ -70,11 +70,11 @@ Not deep dive.
 
 Sheet modules and Workbook modules are exported to [ModuleName].sht.cls.
 For vbecm distinguishes normal class modules from sheet(book) modules.
-Thanks for the VbaDeveloper
+Thanks for the VbaDeveloper.
 
 ### Opened excel file
 
-While vbecm is working, Excel dose not close. Pleas close the file when you end using it.
+While vbecm is working, Excel dose not close. Please close the file when you end using it.
 
 ### For xlam file
 
