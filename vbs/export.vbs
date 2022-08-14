@@ -12,18 +12,33 @@ Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\sta
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
 Dim bookPath
+'' if empty, export all modules.
+'' if set, export modulePath module
+'' module include sht.cls
+Dim modulePathSelect
 Dim isAllExport ' 1: all(work, base, current), 0: only current
 If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
     isAllExport = 1
+    modulePathSelect = ""
 ElseIf WScript.Arguments.Count = 2 Then
     bookPath = WScript.Arguments(0)
     isAllExport = WScript.Arguments(1)
+    modulePathSelect = ""
+ElseIf WScript.Arguments.Count = 3 Then
+    bookPath = WScript.Arguments(0)
+    isAllExport = WScript.Arguments(1)
+    modulePathSelect = WScript.Arguments(2)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
-    isAllExport = 1
+    isAllExport = 0
+    modulePathSelect = ""
 End If
+
+DebugWriteLine "bookPath", bookPath
+DebugWriteLine "isAllExport", isAllExport
+DebugWriteLine "modulePathSelect", modulePathSelect
 
 
 If fso.FileExists(bookPath) = False Then
@@ -61,7 +76,6 @@ set objExcel = book.Application
 '' export modules
 
 If book.VBProject.Protection <> 0 Then
-    objExcel.Close
     set objExcel = Nothing
     WScript.Quit(10)
 end If
@@ -76,29 +90,37 @@ dim modulePathBase
 dim modulePathCurrent
 
 For Each vbComponent In VBComponents
-    If vbComponent.CodeModule.CountOfLines > 0 Then
-    
-        TypeOfModule = ResolveExtension(vbComponent.Type)
-        modulePath = dirModules & "\" & vbComponent.Name & TypeOfModule
-        modulePathBase = "" ''dirModulesBase & "\" & vbComponent.Name & TypeOfModule
-        modulePathCurrent ="" '' dirModulesCurrent & "\" & vbComponent.Name & TypeOfModule
 
+    TypeOfModule = ResolveExtension(vbComponent.Type)
+    modulePath = dirModules & "\" & vbComponent.Name & TypeOfModule
+    modulePathBase = "" ''dirModulesBase & "\" & vbComponent.Name & TypeOfModule
+    modulePathCurrent ="" '' dirModulesCurrent & "\" & vbComponent.Name & TypeOfModule
+
+    Dim isExport
+    isExport = modulePathSelect = "" Or LCase(modulePath) = LCase(modulePathSelect)
+
+    DebugWriteLine "isExport; " & vbComponent.Name, isExport
+
+    If vbComponent.CodeModule.CountOfLines > 0 And isExport Then
         If TypeOfModule = "" Then
             ' do nothing
+            DebugWriteLine "Next is not exported", vbComponent.Name
         ElseIF vbComponent.Type = 100 Then
             sheetObjContents = vbComponent.CodeModule.Lines(1, vbComponent.CodeModule.CountOfLines)
             If isAllExport Then
-                ExportSheetModule modulePath, sheetObjContents
+                ExportSheetModule modulePathCurrent, sheetObjContents
                 ExportSheetModule modulePathBase, sheetObjContents
             End If
-            ExportSheetModule modulePathCurrent, sheetObjContents
+            ExportSheetModule modulePath, sheetObjContents
         Else
             If isAllExport Then
-                ExportNormalModule vbComponent, modulePath
+                ExportNormalModule vbComponent, modulePathCurrent
                 ExportNormalModule vbComponent, modulePathBase
             End if
-            ExportNormalModule vbComponent, modulePathCurrent
+            ExportNormalModule vbComponent, modulePath
         End If
+    Else
+        DebugWriteLine "Next is not exported", vbComponent.Name
     End If
 Next
 
@@ -124,6 +146,7 @@ Function ExportNormalModule(vbComponent, filePath)
         Exit Function
     End if
     vbComponent.Export filePath
+    DebugWriteLine "Export normal module", filePath
 End Function
 
 Function ExportSheetModule(filePath, contents)
@@ -139,6 +162,7 @@ Function ExportSheetModule(filePath, contents)
     Set objFile = objFS.CreateTextFile(strFile)
     objFile.Write(contents)
     objFile.Close
+    DebugWriteLine "Export sheet module", filePath
 End Function
 
 Function CreateFolder(folderPath)

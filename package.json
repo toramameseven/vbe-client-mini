@@ -47,6 +47,10 @@
       {
         "command": "editor.commit",
         "title": "Commit the select vba module"
+      },
+      {
+        "command": "editor.checkout",
+        "title": "Checkout the select vba module"
       }
     ],
     "menus": {
@@ -77,6 +81,11 @@
           "when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
           "command": "editor.commit",
           "group": "myGroup@2"
+        },
+        {
+          "when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
+          "command": "editor.checkout",
+          "group": "myGroup@3"
         }
       ]
     },

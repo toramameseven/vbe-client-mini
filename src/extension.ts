@@ -53,6 +53,13 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandRun);
 
+  // check out on editor
+  const commandCheckOut = vscode.commands.registerCommand(
+    'editor.checkout', 
+    checkoutAsync
+  );
+  context.subscriptions.push(commandCheckOut);
+
   // commit form editor
   const commandCommit = vscode.commands.registerCommand(
     'editor.commit', 
@@ -226,6 +233,37 @@ const commitAsync = async (uri:vscode.Uri) => {
     showInformationMessage("Success commit.");
   }
   displayMenu(true);
+};
+/**
+ * 
+ * @param uri module path
+ * @returns 
+ */
+const checkoutAsync = async (uri:vscode.Uri) => {
+  displayMenu(false);
+
+  const xlsmPath = await getExcelPathFromModule(uri);
+  const modulePath = uri.fsPath;
+
+  const fileDir = path.dirname(xlsmPath);
+  const baseName = path.basename(xlsmPath);
+  
+  // test really checkout (export form excel)
+  const ans = await vscode.window.showInformationMessage("Do you want to checkout and overwrite?", "Yes", "No");
+  if (ans === 'No'){
+    displayMenu(true);
+    return;
+  }
+
+  // export
+  const {err, status} = runVbs('export.vbs',[xlsmPath, '0', modulePath]);
+  if (status !== 0 || err){
+    vscode.window.showErrorMessage(err);
+  } else {
+    showInformationMessage("Success checkout.");
+  }
+  displayMenu(true);
+
 };
 
 
