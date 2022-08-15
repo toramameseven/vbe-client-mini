@@ -60,7 +60,8 @@ $ vsce publish
 * When you export modules, vbecm asks "Do you want to export" in notification window.
   Unless you click Yes or No, you can not select next command.
 * Sometimes, you meet export or import error. So you recover from a backup file.
-* When vbecm is working, [[vbecm Working]] is displayed on the status bar. Check the notification window, if some confirm dialog exists. Or some bug includes, please reload your vscode.
+* When vbecm is working, [[vbecm]] is displayed on the status bar. Check the notification window, if some confirm dialog exists. Or some bug includes, please reload your vscode.
+* When you import a sheet module, sometimes you find new empty line at end of module.
 
 ## Shallow dive
 
@@ -70,7 +71,8 @@ Not deep dive.
 
 Sheet modules and Workbook modules are exported to [ModuleName].sht.cls.
 For vbecm distinguishes normal class modules from sheet(book) modules.
-Thanks for the VbaDeveloper.
+Thanks for the [VbaDeveloper](https://github.com/hilkoc/vbaDeveloper "VbaDeveloper")
+
 
 ### Opened excel file
 
@@ -87,4 +89,7 @@ vbecm will delete the line.
 
 
 ## Release Notes
+
+0.0.1 test release.
+
 

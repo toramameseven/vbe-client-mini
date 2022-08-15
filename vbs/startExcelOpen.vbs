@@ -115,6 +115,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
+    exit Sub
     Dim outTitle
     Dim outValue
     outTitle = title

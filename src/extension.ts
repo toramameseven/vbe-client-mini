@@ -81,7 +81,7 @@ export function deactivate() {}
 // status bar
 function updateStatusBarItem(isVbaWork: boolean): void {
 	if (isVbaWork) {
-		statusBarVba.text = `[vbecm Working]`;
+		statusBarVba.text = `$(sync~spin) vbecm`;
 		statusBarVba.show();
 	} else {
 		statusBarVba.hide();
