@@ -28,6 +28,17 @@ Else
     modulePath = "C:\projects\toramame-hub\vbe-client-mini\xlsms\src_macrotest.xlsm\Module2.bas"
 End If
 
+
+'' get modules folder
+Dim moduleFolderPath
+moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
+
+IF fso.FolderExists(moduleFolderPath) = False Then
+    WScript.StdErr.WriteLine ("No src Folder: " & moduleFolderPath)
+    WScript.Quit(10)
+End If
+
+
 '' 
 On Error Resume Next
 
@@ -40,7 +51,7 @@ Dim objExcel
 Set objExcel = book.Application
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not Open Excel: " & bookPath
+    WScript.StdErr.WriteLine ("Can not Open Excel: " & bookPath)
     book.Close
     WScript.Quit(Err.Number)
 End If
@@ -52,15 +63,10 @@ On Error Resume Next
 Call DeleteVbaModules(book, modulePath, isUseFromModule, isUseSheetModule)
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not delete modules: " & bookPath
+    WScript.StdErr.WriteLine ("Can not delete modules: " & bookPath)
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
-
-
-'' get modules folder
-Dim moduleFolderPath
-moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
 
 On Error Resume Next
 ''' Import VBA module files
@@ -68,7 +74,7 @@ Call importVbaModules(fso.GetFolder(moduleFolderPath), book, bookPath, modulePat
 book.Save
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not import modules: " & bookPath
+    WScript.StdErr.WriteLine ("Can not import modules: " & bookPath)
     DebugWriteLine "importVbaModules Err", Err.description
     WScript.Quit(Err.Number)
 End If

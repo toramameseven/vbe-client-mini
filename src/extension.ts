@@ -138,6 +138,11 @@ const canExportOrImport = async (srcDir: string, xlsmPath: string): Promise<bool
   return true;
 };
 
+/**
+ * 
+ * @param uri excel path
+ * @returns 
+ */
 const importModuleAsync = async (uri:vscode.Uri) => {
   displayMenu(false);
   //console.log(uri.fsPath);
@@ -148,13 +153,13 @@ const importModuleAsync = async (uri:vscode.Uri) => {
 
   const isSrcExist = await dirExists(srcDir);
   if (!isSrcExist){
-    showErrorMessage(srcDir);
+    showErrorMessage(`Source folder does not exist: ${srcDir}`);
     displayMenu(true);
   }
 
   const xlsExists = await fileExists(xlsmPath);
   if (!xlsExists){
-    showErrorMessage(xlsmPath);
+    showErrorMessage(`Excel file does not exist: ${xlsmPath}`);
     displayMenu(true);
   }
 
@@ -196,6 +201,12 @@ const runAsync = async (textEditor: TextEditor, edit: vscode.TextEditorEdit, uri
   displayMenu(false);
   // excel file path
   const xlsmPath = await getExcelPathFromModule(uri);
+  const modulePath = uri.fsPath;
+  if (xlsmPath === ''){
+    showErrorMessage(`Excel file does not exist to run.: ${modulePath}`);
+    displayMenu(true);
+    return;
+  }
 
   // sub function
   const activeLine = textEditor.document.lineAt(textEditor.selection.active.line).text;
@@ -219,10 +230,15 @@ const runAsync = async (textEditor: TextEditor, edit: vscode.TextEditorEdit, uri
 
 const commitAsync = async (uri:vscode.Uri) => {
   displayMenu(false);
-  const importModulesVbs = path.resolve(getVbsPath(),'import.vbs');
+
   const xlsmPath = await getExcelPathFromModule(uri);
   const modulePath = uri.fsPath;
-  
+  if (xlsmPath === ''){
+    showErrorMessage(`Excel file does not exist to commit.: ${modulePath}`);
+    displayMenu(true);
+    return;
+  }
+
   const {err, status} = runVbs('import.vbs',[xlsmPath, modulePath] );
 
   if (status !== 0){
@@ -241,14 +257,18 @@ const commitAsync = async (uri:vscode.Uri) => {
  */
 const checkoutAsync = async (uri:vscode.Uri) => {
   displayMenu(false);
-
+  
+  // if the file does not exist, return ''
   const xlsmPath = await getExcelPathFromModule(uri);
   const modulePath = uri.fsPath;
-
-  const fileDir = path.dirname(xlsmPath);
-  const baseName = path.basename(xlsmPath);
+  if (xlsmPath === ''){
+    showErrorMessage(`Excel file does not exist to checkout.: ${modulePath}`);
+    displayMenu(true);
+    return;
+  }
   
   // test really checkout (export form excel)
+  // test always
   const ans = await vscode.window.showInformationMessage("Do you want to checkout and overwrite?", "Yes", "No");
   if (ans === 'No'){
     displayMenu(true);

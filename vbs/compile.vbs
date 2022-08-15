@@ -30,7 +30,7 @@ Dim objExcel
 Set objExcel = book.Application
 
 If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not Open: " & bookName & " : " & bookPath
+    WScript.StdErr.WriteLine ("Can not Open: " & bookName & " : " & bookPath)
     book.Close
     WScript.Quit(Err.Number)
 End If
@@ -42,7 +42,7 @@ On Error Resume Next
 Dim ctrl
 Set ctrl = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 578)
 If Err.Number <> 0 Or ctrl Is Nothing Then
-    WScript.StdErr.WriteLine "Check objExcel Object Model Security"
+    WScript.StdErr.WriteLine ("Check objExcel Object Model Security")
 Else
     If ctrl.Enabled = True Then
         ctrl.Execute

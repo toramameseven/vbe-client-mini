@@ -44,7 +44,7 @@ DebugWriteLine "isAllExport", isAllExport
 DebugWriteLine "modulePathSelect", modulePathSelect
 
 If fso.FileExists(bookPath) = False Then
-    WScript.StdEr.WriteLine "File does not exists: " & fso.GetFileName(bookPath) 
+    WScript.StdErr.WriteLine ("File does not exists: " & bookPath)
     WScript.Quit(10)
 End If
 
@@ -66,7 +66,7 @@ If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not Create folders"
     WScript.Quit(Err.Number)
 End If
-'On Error Goto 0
+On Error Goto 0
 
 
 On Error Resume Next
@@ -85,7 +85,6 @@ If Err.Number <> 0 Then
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
-
 
 '' from startExcelOpen.vbs
 On Error Resume Next
@@ -202,8 +201,16 @@ Function ExportSheetModule(filePath, contents)
 End Function
 
 Function CreateFolder(folderPath)
-    If (Not fso.FolderExists(folderPath)) And (Not fso.FileExists(folderPath)) Then
+    If (fso.FileExists(folderPath)) Then
+      WScript.StdErr.WriteLine "Can not Create Folder. Same file exists"
+      WScript.Quit(10)
+    End If
+
+    If (Not fso.FolderExists(folderPath)) Then
         fso.CreateFolder folderPath 
     End If
+
+    '' already the folder exists
+    '' good and return
 End Function
 
