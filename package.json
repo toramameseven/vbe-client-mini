@@ -40,6 +40,10 @@
 				"command": "command.compile",
 				"title": "Compile Vba"
 			},
+      {
+				"command": "command.exportfrx",
+				"title": "Export frx modules"
+			},
 			{
 				"command": "editor.run",
 				"title": "Run select Vba line"
@@ -69,6 +73,11 @@
 					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
 					"command": "command.compile",
 					"group": "myGroup@3"
+				},
+        {
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
+					"command": "command.exportfrx",
+					"group": "myGroup@4"
 				}
 			],
 			"editor/context": [
@@ -123,10 +132,12 @@
 		"test-compile": "tsc -p ./"
 	},
 	"devDependencies": {
+		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/iconv-lite": "^0.0.1",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
+		"@types/uuid": "^8.3.4",
 		"@types/vscode": "^1.69.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
@@ -139,7 +150,9 @@
 	},
 	"dependencies": {
 		"dir-compare": "^4.0.0",
-		"iconv-lite": "^0.6.3"
+		"fs-extra": "^10.1.0",
+		"iconv-lite": "^0.6.3",
+		"uuid": "^8.3.2"
 	},
 	"license": "MIT",
 	"repository": {

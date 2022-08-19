@@ -4,6 +4,9 @@ import path = require('path');
 import * as vscode from 'vscode';
 import * as statusBar from './statusBar';
 import * as vbs from './vbsModule';
+import { myOutput } from './myOutput';
+
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -39,6 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCompile);
 
+  // export frx
+  const commandExportFrx = vscode.commands.registerCommand(
+    'command.exportfrx', 
+    vbs.updateFrxModule
+  );
+  context.subscriptions.push(commandExportFrx);
+
   // run
   const commandRun = vscode.commands.registerTextEditorCommand (
     'editor.run', 
@@ -63,6 +73,11 @@ export function activate(context: vscode.ExtensionContext) {
   displayMenu(true);
   // update status bar item once at start
 	statusBar.updateStatusBarItem(false);
+  
+  //log
+  myOutput.show(false);
+  myOutput.appendLine("initialize output");
+
 }
 
 //End ------------------------------------------------------------------------

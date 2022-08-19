@@ -11,74 +11,61 @@ Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\sta
 '' get gook path
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
-Dim bookPath
 
+
+Dim bookPath
 '' if empty, export all modules.
 '' if set, export modulePath module
 '' module include sht.cls
 Dim modulePathSelect
-Dim isAllExport ' 1: all(work, base, current), 0: only current
+Dim pathToExport
+pathToExport = ""
+modulePathSelect = ""
 If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
-    isAllExport = 1
-    modulePathSelect = ""
 ElseIf WScript.Arguments.Count = 2 Then
     bookPath = WScript.Arguments(0)
-    isAllExport = WScript.Arguments(1)
-    modulePathSelect = ""
+    pathToExport = WScript.Arguments(1)
 ElseIf WScript.Arguments.Count = 3 Then
     bookPath = WScript.Arguments(0)
-    isAllExport = WScript.Arguments(1)
+    pathToExport = WScript.Arguments(1)
     modulePathSelect = WScript.Arguments(2)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
-    isAllExport = 0
-    modulePathSelect = ""
 End If
-isAllExport = 0
 
 '' debug output information
 DebugWriteLine "bookPath", bookPath
-DebugWriteLine "isAllExport", isAllExport
+DebugWriteLine "pathToExport", pathToExport
 DebugWriteLine "modulePathSelect", modulePathSelect
 
+'' test bookPath
 If fso.FileExists(bookPath) = False Then
     WScript.StdErr.WriteLine ("File does not exists: " & bookPath)
     WScript.Quit(10)
 End If
 
-On Error Resume Next
 '' create export folders
+On Error Resume Next
 Dim dirModules
-dirModules = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath)
-Dim dirModulesBase
-dirModulesBase = dirModules & "\.base"
-Dim dirModulesCurrent
-dirModulesCurrent = dirModules & "\.current"
-
+If pathToExport = "" Then
+  dirModules = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath)
+Else
+  dirModules = pathToExport
+End If
 CreateFolder dirModules
-''for commit check, if dirModulesBase files differ from dirModulesCurrent, dirModulesCurrent is modified.
-'CreateFolder dirModulesBase
-'CreateFolder dirModulesCurrent
-
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not Create folders"
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
 
-
 On Error Resume Next
 If modulePathSelect = "" Then
   '' clear folder
-  If isAllExport Then
-      DeleteFilesInFolder dirModulesBase
-      DeleteFilesInFolder dirModulesCurrent
-  End if
   DeleteFilesInFolder dirModules
 End if
-
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not delete module files."
     WScript.StdErr.WriteLine Err.description
@@ -86,7 +73,7 @@ If Err.Number <> 0 Then
 End If
 On Error Goto 0
 
-'' from startExcelOpen.vbs
+'' from startExcelOpen.vbs 
 On Error Resume Next
 OpenExcelFile bookPath
 
@@ -102,30 +89,17 @@ End If
 On Error Goto 0
 
 
-'' export modules
-
-' If book.VBProject.Protection <> 0 Then
-'     set objExcel = Nothing
-'     WScript.Quit(10)
-' end If
-
 Dim vbComponent
 Dim TypeOfModule
 Dim VBComponents
 Set VBComponents = book.VBProject.VBComponents
 Dim sheetObjContents
 dim modulePath
-dim modulePathBase
-dim modulePathCurrent
-
 
 On Error Resume Next
 For Each vbComponent In VBComponents
-
     TypeOfModule = ResolveExtension(vbComponent.Type)
     modulePath = dirModules & "\" & vbComponent.Name & TypeOfModule
-    modulePathBase = "" ''dirModulesBase & "\" & vbComponent.Name & TypeOfModule
-    modulePathCurrent ="" '' dirModulesCurrent & "\" & vbComponent.Name & TypeOfModule
 
     Dim isExport
     isExport = modulePathSelect = "" Or LCase(modulePath) = LCase(modulePathSelect)
@@ -136,17 +110,9 @@ For Each vbComponent In VBComponents
             DebugWriteLine "Next is not exported", vbComponent.Name
         ElseIF vbComponent.Type = 100 Then
             sheetObjContents = vbComponent.CodeModule.Lines(1, vbComponent.CodeModule.CountOfLines)
-            If isAllExport Then
-                ExportSheetModule modulePathCurrent, sheetObjContents
-                ExportSheetModule modulePathBase, sheetObjContents
-            End If
             ExportSheetModule modulePath, sheetObjContents
         Else
-            If isAllExport Then
-                ExportNormalModule vbComponent, modulePathCurrent
-                ExportNormalModule vbComponent, modulePathBase
-            End if
-            ExportNormalModule vbComponent, modulePath
+            ExportNormalModule modulePath, vbComponent
         End If
     Else
         DebugWriteLine "Next is not exported", vbComponent.Name
@@ -165,6 +131,8 @@ Set fso = Nothing
 WScript.StdOut.WriteLine "Export Complete"
 WScript.Quit(0)
 
+'' modules
+
 Function ResolveExtension(cType)
     Select Case cType
         Case 1      : ResolveExtension = ".bas"
@@ -176,7 +144,7 @@ Function ResolveExtension(cType)
 End Function
 
 
-Function ExportNormalModule(vbComponent, filePath)
+Function ExportNormalModule(filePath, vbComponent)
     If filePath = "" Then
         Exit Function
     End if
