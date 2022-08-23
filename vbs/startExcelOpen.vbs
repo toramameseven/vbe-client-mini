@@ -2,6 +2,7 @@ Option Explicit
 
 ''test
 ''TestFileOpen
+''CloseExcelFile "macrotest.xlsm"
 
 '' for debug
 Function TestFileOpen()
@@ -94,6 +95,32 @@ Function OpenExcelFile(bookPath)
   On Error Goto 0
 End Function
 
+
+Sub CloseExcelFile(bookName)
+  '' is objExcel running?
+  Dim objExcel
+  Dim IsRunExcel
+  On Error Resume Next
+  Set objExcel = GetObject(,"Excel.Application")
+  If objExcel Is Nothing Then
+      WScript.Quit(0)
+  End If
+  If Err.Number <> 0 Then
+      WScript.Quit(Err.Number)
+  End If
+  On Error Goto 0
+
+  Dim wb, IsOpenFile
+  IsOpenFile = False
+  For Each wb in objExcel.Workbooks
+    If LCase(wb.Name) = LCase(bookName) Then    
+      IsOpenFile = True
+      wb.Close()
+      Exit For
+    End if
+  Next
+End Sub
+
 ''for debug
 ''DeleteFilesInFolder "C:\projects\toramame-hub\xy\xlsms\src_macroTest.xlsm"
 
@@ -115,7 +142,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    ''exit Sub
+    exit Sub
     Dim outTitle
     Dim outValue
     outTitle = title

@@ -6,7 +6,7 @@ export function updateStatusBarItem(isVbaWork: boolean): void {
 	if (isVbaWork) {
 		statusBarVba.text = `$(sync~spin) vbecm`;
 		statusBarVba.show();
-	} else {
-		statusBarVba.hide();
+    return;
 	}
+	statusBarVba.hide();
 }

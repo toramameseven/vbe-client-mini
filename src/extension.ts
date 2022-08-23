@@ -4,7 +4,8 @@ import path = require('path');
 import * as vscode from 'vscode';
 import * as statusBar from './statusBar';
 import * as vbs from './vbsModule';
-import { myOutput } from './myOutput';
+import { vbeOutput } from './vbeOutput';
+import * as handler from './handlers';
 
 
 
@@ -12,7 +13,7 @@ import { myOutput } from './myOutput';
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   
-  console.log('Congratulations, your extension "vbe-client-mini" is now active!');
+  console.log('extension "vbe-client-mini" is now active!');
 
   //statusBar.statusBarVba = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
 	// statusBarVba.command = myCommandId;
@@ -21,62 +22,79 @@ export function activate(context: vscode.ExtensionContext) {
   // const isUseFormModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useFormModule');
   // const isUseSheetModule = () => vscode.workspace.getConfiguration('vbecm').get<boolean>('useSheetModule');
   
+  //   --------------explorer
   // export
   const commandExport = vscode.commands.registerCommand(
     'command.export', 
-    vbs.exportModuleAsync
+    handler.handlerExportModules
   );
   context.subscriptions.push(commandExport);
 
   // import
   const commandImport = vscode.commands.registerCommand(
     'command.import', 
-    vbs.importModuleAsync
+    handler.handlerImportModules
   );
   context.subscriptions.push(commandImport);
 
   // compile
   const commandCompile = vscode.commands.registerCommand(
     'command.compile', 
-    vbs.compile
+    handler.handlerCompile
   );
   context.subscriptions.push(commandCompile);
 
   // export frx
   const commandExportFrx = vscode.commands.registerCommand(
     'command.exportfrx', 
-    vbs.updateFrxModule
+    handler.handlerUpdateFrxModules
   );
   context.subscriptions.push(commandExportFrx);
 
+  // commit all module from folder
+  const commandCommitAll = vscode.commands.registerCommand(
+    'command.commit-all', 
+    handler.handlerCommitAllModule
+  );
+  context.subscriptions.push(commandCommitAll);
+
+  //   --------------editor
   // run
   const commandRun = vscode.commands.registerTextEditorCommand (
     'editor.run', 
-    vbs.runAsync
+    handler.handlerVbaRun
   );
   context.subscriptions.push(commandRun);
 
   // check out on editor
   const commandCheckOut = vscode.commands.registerCommand(
     'editor.checkout', 
-    vbs.checkoutAsync
+    handler.handlerUpdateAsync
   );
   context.subscriptions.push(commandCheckOut);
 
   // commit form editor
   const commandCommit = vscode.commands.registerCommand(
     'editor.commit', 
-    vbs.commitAsync
+    handler.handlerCommitModule
   );
   context.subscriptions.push(commandCommit);
+
+
+
+
+
+
+
+
   
-  displayMenu(true);
+  displayMenus(true);
   // update status bar item once at start
 	statusBar.updateStatusBarItem(false);
   
   //log
-  myOutput.show(false);
-  myOutput.appendLine("initialize output");
+  vbeOutput.show(false);
+  vbeOutput.appendLine('initialize output');
 
 }
 
@@ -89,7 +107,7 @@ export function deactivate() {}
  * set display vbe menu on or off
  * @param isOn
  */
-const displayMenu = (isOn : boolean) =>{
+const displayMenus = (isOn : boolean) =>{
   vscode.commands.executeCommand('setContext', 'vbecm.showVbsCommand', isOn);
   statusBar.updateStatusBarItem(!isOn);
 };

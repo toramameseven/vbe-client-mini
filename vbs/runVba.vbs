@@ -34,7 +34,8 @@ Set objWshShell = WScript.CreateObject("WScript.Shell")
 objWshShell.AppActivate myWorkBook.Name, True
 
 '' run functionName on myWorkBook
-objExcel.Run myWorkBook.Name & "!" & FunctionName
+Dim ret
+ret = objExcel.Run myWorkBook.Name & "!" & FunctionName
 WScript.Quit(0)
 
 

@@ -30,53 +30,62 @@
 		"commands": [
 			{
 				"command": "command.export",
-				"title": "Export all vba modules"
+				"title": "Export all VBA modules"
 			},
 			{
 				"command": "command.import",
-				"title": "Import all vba modules"
+				"title": "Import all VBA modules"
 			},
 			{
 				"command": "command.compile",
-				"title": "Compile Vba"
+				"title": "Compile VBA"
 			},
-      {
+			{
 				"command": "command.exportfrx",
 				"title": "Export frx modules"
 			},
 			{
 				"command": "editor.run",
-				"title": "Run select Vba line"
+				"title": "Run select Sub function"
 			},
 			{
 				"command": "editor.commit",
-				"title": "Commit the select vba module"
+				"title": "Commit VBA module"
 			},
 			{
 				"command": "editor.checkout",
 				"title": "Checkout the select vba module"
+			},
+      {
+				"command": "command.commit-all",
+				"title": "Commit All modules"
 			}
 		],
 		"menus": {
 			"explorer/context": [
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.export",
 					"group": "myGroup@1"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.import",
 					"group": "myGroup@2"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.compile",
 					"group": "myGroup@3"
 				},
-        {
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand",
+				{
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
 					"command": "command.exportfrx",
+					"group": "myGroup@4"
+				},
+				{
+					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"command": "command.commit-all",
 					"group": "myGroup@4"
 				}
 			],
@@ -132,6 +141,7 @@
 		"test-compile": "tsc -p ./"
 	},
 	"devDependencies": {
+		"@types/chai": "^4.3.3",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/iconv-lite": "^0.0.1",
@@ -149,6 +159,7 @@
 		"typescript": "^4.7.4"
 	},
 	"dependencies": {
+		"chai": "^4.3.6",
 		"dir-compare": "^4.0.0",
 		"fs-extra": "^10.1.0",
 		"iconv-lite": "^0.6.3",

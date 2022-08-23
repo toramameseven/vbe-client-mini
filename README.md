@@ -12,11 +12,18 @@ before use this extension, you must back up your xlsm or xlam file.
 
 ### explorer context menu
 
-* export vba module form a xlsm file to a folder.
+* Export vba modules form a xlsm file to a folder.
   * select a xlsm file in the explorer, and right click, and select export.
-  you can find a src_file.xlsm folder at the same folder.
-* import vba module to a xlsm file.
+  you can find a Src_[xxx.xlsm] folder at the same folder.
+* Import vba modules to a xlsm file.
   * you can import modules from a src_file.xlsm folder.
+* compile VBA
+  vbecm can not detect compile, so please check on the VBE.
+* Export frx modules
+  * You can not know frx is modified or not.  If you modified a frm on the vscode,
+    you can export only frx files.
+* Commit all modules form a Src_[xxx.xlsm] folder
+  * you can commit all modules in the source folder.
 
 ### editor context menu
 
@@ -24,13 +31,10 @@ before use this extension, you must back up your xlsm or xlam file.
   * Selected module is imported to a xlsm file.
 * run Sub() function on a editor.
   * select a sub XXX() line, and right click, and select run.
-* checkout a module form excel.
+* update selected modules. (checkout a module form excel.)
 
 ### settings
 
-* form modules and sheet modules are not imported on default settings. If you want, you can enable the settings
-  * Enable importing form modules(frm).
-  * Enable importing sheet Modules(cls). 
 * At cjk language area, vbs message not work good beside Japanese. Set encode option
   * vbecm.vbsEncode, for japanese 'windows-31j'
 
@@ -57,11 +61,12 @@ $ vsce publish
 
 * At cjk language area, vbs message not work good beside Japanese. Please customize your encode.
 * Sometimes, Excel remain on background. You should kill the process on a task manager.
-* When you export modules, vbecm asks "Do you want to export" in notification window.
+* When you export modules, vbecm asks "Do you want to export" or etc. in notification window.
   Unless you click Yes or No, you can not select next command.
 * Sometimes, you meet export or import error. So you recover from a backup file.
 * When vbecm is working, [[vbecm]] is displayed on the status bar. Check the notification window, if some confirm dialog exists. Or some bug includes, please reload your vscode.
 * When you import a sheet module, sometimes you find new empty line at end of module.
+* Sometime, you may see the folder src_GUID. It remains when errors occur. Please delete it.
 
 ## Shallow dive
 
@@ -87,8 +92,19 @@ When you use an xlam file, vbecm add a book to the excel instance.
 When you import a frm module, you find a extra line added.
 vbecm will delete the line.
 
+### .base folder
+
+In the Src_[xxx.xlsm] folder, you can see a .base folder. There are modules same with a Excel Book.
+When you commit or import modules, vbecm tests if modules in a excel are modified.
+
 
 ## Release Notes
+
+0.0.2 test release.
+
+* When you run a sub functions that are in some modules, vbecm can not detect the module the function includes.
+  This version can detect the module you select.
+* Some features add.
 
 0.0.1 test release.
 

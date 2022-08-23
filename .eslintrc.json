@@ -14,11 +14,14 @@
         "curly": "warn",
         "eqeqeq": "warn",
         "no-throw-literal": "warn",
+        "quotes": [2, "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
         "semi": "off"
     },
     "ignorePatterns": [
         "out",
         "dist",
+        "vbs",
+        "xlsms",
         "**/*.d.ts"
     ]
 }

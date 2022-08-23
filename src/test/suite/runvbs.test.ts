@@ -1,73 +1,258 @@
 import * as assert from 'assert';
-import iconv = require("iconv-lite");
+import iconv = require('iconv-lite');
 import path = require('path');
 import * as fs from 'fs'; 
 import { compare, compareSync, Options, Result, DifferenceState } from 'dir-compare';
 import { disconnect } from 'process';
 import * as vbs from '../../vbsModule';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
+import * as common  from '../../common';
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+import { expect } from 'chai';
 
-suite('Extension Test Suite2', () => {
-	vscode.window.showInformationMessage('Start all tests.');
 
-  const options: Options = { 
-    compareSize: true, 
-    compareContent: true,
-    excludeFilter: "**/*.frx"
+
+
+
+function getTestPath(){
+  const xlsPath = path.resolve(__dirname, '../../../xlsms');
+  const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
+  const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
+  const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test.xlsm');
+  const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
+  const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
+  const pathTestModule = path.resolve(pathSrc, 'Module1.bas');
+
+  return {
+    pathSrc,
+    pathSrcBase,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+    pathTestModule
   };
+  
+}
+
+describe('#vbsModules.exportModules', () => {
+  const {
+    pathSrc,
+    pathSrcBase,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+  } = getTestPath();
 
 
-  const rootFolder = path.dirname(__filename);
-  const xlsPath = path.resolve(rootFolder, "../../../xlsms");
+  before(async function(){
+    this.timeout(60000);
 
-  const path1 = path.resolve(xlsPath, 'src_macrotest.xlsm');
-  const path2 = path.resolve(xlsPath, 'src_macrotest_test.xlsm');
+    vbs.closeBook(bookPath);
+    fs.rmSync(bookPath);
+    fs.copyFileSync(bookPathOriginal, bookPath);
 
-  const uriXlsmFile = vscode.Uri.file(path.resolve(xlsPath, 'macrotest.xlsm'));
+    console.log('                                           ======= before');
+    if (await common.dirExists(pathSrc)){
+      // fs.rmSync(pathSrc, { recursive: true, force: true });
+      vbs.deleteModulesInSrc(pathSrc);
+      vbs.deleteModulesInSrc(pathSrcBase);
+    }
+  });
+  
+  // test code
+  beforeEach(async function(){
+    this.timeout(60000);
+    console.log('                                           ======= beforeEach');
+    try {
+      await vbs.exportModules(bookPath);   
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
-  fs.rmSync(path1, { recursive: true, force: true });
+  // check
+  describe('##vbs Test main', () => {
+    const {
+      pathSrc,
+      pathSrcExpect,
+      bookPath,
+      bookPathOriginal,
+    } = getTestPath();
 
-  vbs.exportModuleSync(uriXlsmFile);
+    const options: Options = {
+      compareSize: true,
+      compareContent: true,
+      skipSubdirs: true,
+      excludeFilter: '**/*.frx,.base,.current'
+    };
 
-	test('export with create folder', () => {
-    const r = compareSync(path1, path2, options);
-		assert.strictEqual( r.same, true, 'test export files.');
-	});
-
-  vbs.exportModuleSync(uriXlsmFile);
-
-  test('export to exist folder', () => {
-    const r = compareSync(path1, path2, options);
-		assert.strictEqual( r.same, true, 'test export files.');
-	});
-
-  vbs.importModuleSync(uriXlsmFile);
-  vbs.exportModuleSync(uriXlsmFile);
-  test('import test', () => {
-    const r = compareSync(path1, path2, options);
-		assert.strictEqual( r.same, true, 'test export files.');
-	});
+    ['create folder and export to the folder','export to created folder'].forEach(
+      async (message) => {
+        it(message, async () => {
+        let r : Result;
+        try {
+          r = await compare(pathSrc, pathSrcExpect, options);
+        } catch (error) {
+          console.log(error);
+          throw(error);
+        }
+        assert.strictEqual(r.same, true, message);
+      });} 
+    );
+  });
 });
 
 
-// Synchronous
-// export const doDiff = (path1: string, path2: string) =>{
-//   const res : Result = compareSync(path1, path2, options);
-//   return res;
-// };
+describe('#vbsModules.importModules', () => {
+  
+  const {
+    pathSrc,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+  } = getTestPath();
 
-// function print(result : Result) {
-//   console.log('Directories are %s', result.same ? 'identical' : 'different');
+  before(async function(){
+    this.timeout(60000);
+    await vbs.exportModules(bookPath); 
+    await vbs.importModules(bookPath);
+  });
 
-//   console.log('Statistics - equal entries: %s, distinct entries: %s, left only entries: %s, right only entries: %s, differences: %s',
-//     result.equal, result.distinct, result.left, result.right, result.differences);
+  // check
+  describe('##vbs Test main', async () => {
+  
+    const options: Options = { 
+      compareSize: true, 
+      compareContent: true,
+      excludeFilter: '**/*.frx,.base,.current'
+    };
+    
+    it('## import modules', async () => {
+      let r : Result;
+      try {
+        r = await compare(pathSrc, pathSrcExpect, options);
+      } catch (error) {
+        console.log(error);
+        throw(error);
+      }
+      assert.strictEqual(r.same, true, 'import modules');
+    });
 
-//   result.diffSet?.filter((dif) => dif.state === 'distinct' )
-//   .forEach((dif) => 
-//     console.log('Difference - name1: %s, type1: %s, name2: %s, type2: %s, state: %s',
-//                 dif.name1, dif.type1, dif.name2, dif.type2, dif.state));
-// };
+  });
+});
+
+//
+describe('#vbsModules.exportFrxModules', () => {
+  const {
+    pathSrc,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+  } = getTestPath();
+
+  // check
+  describe('##vbs Test main', async function(){
+    this.timeout(60000);
+    it('## export frx modules', async () => {
+      let r : boolean = true;
+      try {
+        await vbs.exportFrxModules(bookPath); 
+      } catch (error) {
+        console.log(error);
+        r = false;
+      }
+      assert.strictEqual(r, true);
+    });
+  });
+});
+
+describe('#vbsModules.commitModule', function(){
+  const {
+    pathSrc,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+    pathTestModule
+  } = getTestPath();
+
+  // check
+  it('## commit modules', async function(){
+    this.timeout(60000);
+
+    let r : boolean = true;
+    try {
+      await vbs.commitModule(bookPath, pathTestModule); 
+    } catch (error) {
+      console.log(error);
+      r = false;
+    }
+    assert.strictEqual(r, true);
+  });
+});
+
+describe('#vbsModules.updateModule', function(){
+  const {
+    pathSrc,
+    pathSrcExpect,
+    bookPath,
+    bookPathOriginal,
+    pathTestModule
+  } = getTestPath();
+
+  // check
+  it('## update module', async function(){
+    this.timeout(60000);
+
+    let r : boolean = true;
+    try {
+      await vbs.updateModule(bookPath, pathTestModule); 
+    } catch (error) {
+      console.log(error);
+      r = false;
+    }
+    assert.strictEqual(r, true);
+  });
+});
+
+
+
+describe('#common.ts', async () => {
+
+  return;
+
+  const folderExists = __dirname;
+  const folderNotExist = path.resolve(__dirname, 'xxxxxxxxxxxxxxxxx');
+
+  const fileExists = __filename;
+  const fileNotExits = path.resolve(__filename, 'xxxxxxxxxxxxxxxxx');
+
+  // dir
+  it('test exists folder', async () => {
+    assert.strictEqual(await common.dirExists(folderExists), true);
+  });
+
+  it('test not exist folder', async () => {
+    assert.strictEqual(await common.dirExists(folderNotExist), false);
+  });
+
+  it('test not exist Folder, but file exists', async () => {
+    assert.strictEqual(await common.dirExists(fileExists), false);
+  });
+
+  // folder
+  it('test exists file', async () => {
+    assert.strictEqual(await common.fileExists(fileExists), true);
+  });
+
+  it('test not exist file', async () => {
+    assert.strictEqual(await common.fileExists(fileNotExits), false);
+  });
+
+  it('test not exist file, but exists folder', async () => {
+    assert.strictEqual(await common.fileExists(folderExists), false);
+  });
+
+  it('test not exist file, but exists folder', async () => {
+    const r = await common.fileExists(folderExists);
+    expect(r).is.false;
+  });
+});
