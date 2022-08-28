@@ -6,14 +6,15 @@ This is vbe client mini.
 Vba module export, import extension for vs code.
 This extension thinks Excel as Excel Server.
 
-## Features
-
-before use this extension, you must back up your xlsm or xlam file.
-
 ## Requirement
 
 * Windows 10
 * Excel
+
+
+## Features
+
+before use this extension, you must back up your xlsm or xlam file.
 
 ### explorer context menu
 
@@ -58,13 +59,14 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 
 ```
 npm install -g vsce
-$ vsce package
-$ vsce publish
+vsce package --target win32-x64
+vsce publish --packagePath PATH_TO_WIN32X64_VSIX
 ```
 
 ## Known problems
 
 * If the encoding of your vba modules is not convertible to utf8, do not save the modules on utf8.
+  Sometimes I do this, and messages in modules become unreadable.
 * At cjk language area, vbs message not work good beside Japanese. Please customize your encoding.
 * Sometimes, Excel remain on background. You should kill the process on a task manager.
 * When you export modules, vbecm asks "Do you want to export" or etc. in notification window.
@@ -102,6 +104,8 @@ vbecm will delete the line.
 
 In the Src_[xxx.xlsm] folder, you can see a .base folder. There are modules same with a Excel Book.
 When you commit or import modules, vbecm tests if modules in a excel are modified.
+
+You should better exclude this folder from the explorer and the search.
 
 
 ## Release Notes
