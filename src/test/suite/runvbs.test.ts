@@ -2,22 +2,25 @@ import * as assert from 'assert';
 import iconv = require('iconv-lite');
 import path = require('path');
 import * as fs from 'fs'; 
-import { compare, compareSync, Options, Result, DifferenceState } from 'dir-compare';
+import * as fse from 'fs-extra';
+//import { compare, compareSync, Options, Result, DifferenceState } from 'dir-compare';
 import { disconnect } from 'process';
 import * as vbs from '../../vbsModule';
 import * as common  from '../../common';
+import * as zip  from '../../archive';
 import * as vscode from 'vscode';
 import { expect } from 'chai';
-
-
-
 
 
 function getTestPath(){
   const xlsPath = path.resolve(__dirname, '../../../xlsms');
   const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
+
   const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
-  const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test.xlsm');
+  // for desktop pc
+  //const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test.xlsm');
+  // for note pc
+  const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test_note.xlsm');
   const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
   const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
   const pathTestModule = path.resolve(pathSrc, 'Module1.bas');
@@ -32,18 +35,9 @@ function getTestPath(){
   };
 }
 
-function getCompareOptions(){
-  const options: Options = {
-    compareSize: true,
-    compareContent: true,
-    skipSubdirs: true,
-    includeFilter:'*.cls,*.bas,*.frm',
-    excludeFilter: '**/*.frx,.base,.current'
-  };
-  return options;
-}
 
-describe('#vbsModules.exportModules', () => {
+describe('#vbsModules.exportModulesToScrAndBase', () => {
+  
   const {
     pathSrc,
     pathSrcBase,
@@ -53,28 +47,26 @@ describe('#vbsModules.exportModules', () => {
   } = getTestPath();
 
 
-  before(async function(){
+  before('#Before exportModulesToScrAndBase', async function(){
     this.timeout(60000);
 
     vbs.closeBook(bookPath);
-    (await common.fileExists (bookPath)) && fs.rmSync(bookPath);
-    fs.copyFileSync(bookPathOriginal, bookPath);
+    (await common.fileExists (bookPath)) && fse.rmSync(bookPath);
+    fse.copyFileSync(bookPathOriginal, bookPath);
 
     await vbs.rmDirIfExist(pathSrc, { recursive: true, force: true });
 
-    console.log('                                           ======= before');
     if (await common.dirExists(pathSrc)){
-      vbs.deleteModulesInSrc(pathSrc);
-      vbs.deleteModulesInSrc(pathSrcBase);
+      await vbs.deleteModulesInSrc(pathSrc);
+      await vbs.deleteModulesInSrc(pathSrcBase);
     }
   });
   
   // test code
-  beforeEach(async function(){
+  beforeEach('#Before Each exportModulesToScrAndBase', async function(){
     this.timeout(60000);
-    console.log('                                           ======= beforeEach');
     try {
-      await vbs.exportModules(bookPath);   
+      await vbs.exportModulesToScrAndBase(bookPath);   
     } catch (error) {
       console.log(error);
     }
@@ -89,12 +81,10 @@ describe('#vbsModules.exportModules', () => {
       bookPathOriginal,
     } = getTestPath();
 
-    const options = getCompareOptions();
-
     ['create folder and export to the folder','export to created folder'].forEach(
       async (message) => {
         it(message, async () => {
-        const  r = await compare(pathSrc, pathSrcExpect, options);
+        const  r = vbs.comparePath(pathSrc, pathSrcExpect);
         assert.strictEqual(r.same, true, message);
       });} 
     );
@@ -113,15 +103,14 @@ describe('#vbsModules.importModules', () => {
 
   before(async function(){
     this.timeout(60000);
-    await vbs.exportModules(bookPath); 
+    await vbs.exportModulesToScrAndBase(bookPath); 
     await vbs.importModules(bookPath);
   });
 
   // check
   describe('##importModules main', async () => {
-    const options = getCompareOptions();
     it('## import modules', async () => {
-      const r = await compare(pathSrc, pathSrcExpect, options);
+      const  r = vbs.comparePath(pathSrc, pathSrcExpect);
       assert.strictEqual(r.same, true, 'import modules');
     });
 
@@ -165,7 +154,7 @@ describe('#vbsModules.commitModule', function(){
   // check
   it('## commit modules', async function(){
     this.timeout(60000);
-    let r =  await vbs.commitModule(bookPath, pathTestModule); 
+    let r = await vbs.commitModule(bookPath, pathTestModule); 
     assert.strictEqual(r, true);
   });
 });
@@ -190,11 +179,7 @@ describe('#vbsModules.updateModule', function(){
 
 describe('#vbsModules.vbaRun', function(){
   const {
-    pathSrc,
-    pathSrcExpect,
     bookPath,
-    bookPathOriginal,
-    pathTestModule
   } = getTestPath();
 
   // check
@@ -246,3 +231,5 @@ describe('#common.ts', async () => {
     expect(r).is.false;
   });
 });
+
+

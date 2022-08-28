@@ -54,9 +54,9 @@
 			},
 			{
 				"command": "editor.checkout",
-				"title": "Checkout the select vba module"
+				"title": "Update the select vba module"
 			},
-      {
+			{
 				"command": "command.commit-all",
 				"title": "Commit All modules"
 			}
@@ -86,7 +86,7 @@
 				{
 					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
 					"command": "command.commit-all",
-					"group": "myGroup@4"
+					"group": "2_workspace"
 				}
 			],
 			"editor/context": [
@@ -112,28 +112,27 @@
 			"properties": {
 				"vbecm.useSheetModule": {
 					"type": "boolean",
-					"default": false,
-					"description": "Under construction. Enable importing sheet Modules(cls)."
-				},
-				"vbecm.useFormModule": {
-					"type": "boolean",
-					"default": false,
-					"description": "Under construction. Enable importing form modules(frm)."
+					"default": true,
+					"description": "Enable export sheet Modules(.sht.cls).Now always true.",
+					"order": 1
 				},
 				"vbecm.vbsEncode": {
 					"type": "string",
 					"default": "windows-31j",
-					"description": "Set system encode. If Japanese, windows-31j"
+					"description": "Set system encode. If Japanese, windows-31j",
+					"order": 2
 				}
 			}
 		}
 	},
 	"scripts": {
+    "precompile": "rimraf out",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
+    "do-test": "node ./out/runTest.js",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
@@ -147,6 +146,7 @@
 		"@types/iconv-lite": "^0.0.1",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
+		"@types/tar": "^6.1.2",
 		"@types/uuid": "^8.3.4",
 		"@types/vscode": "^1.69.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
@@ -156,13 +156,16 @@
 		"eslint": "^8.18.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
+		"rimraf": "^3.0.2",
 		"typescript": "^4.7.4"
 	},
 	"dependencies": {
 		"chai": "^4.3.6",
 		"dir-compare": "^4.0.0",
 		"fs-extra": "^10.1.0",
+		"fstream": "^1.0.12",
 		"iconv-lite": "^0.6.3",
+		"tar": "^6.1.11",
 		"uuid": "^8.3.2"
 	},
 	"license": "MIT",

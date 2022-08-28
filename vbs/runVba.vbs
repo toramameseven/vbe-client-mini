@@ -16,7 +16,7 @@ If WScript.Arguments.Count = 2 Then
 Else
     '' debug for click this script.
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
-    FunctionName = "MsgTest3"
+    FunctionName = "Module1.Test4"
 End If
 
 '' from startExcelOpen.vbs
@@ -35,7 +35,8 @@ objWshShell.AppActivate myWorkBook.Name, True
 
 '' run functionName on myWorkBook
 Dim ret
-ret = objExcel.Run myWorkBook.Name & "!" & FunctionName
+ret = objExcel.Run(myWorkBook.Name & "!" & FunctionName)
+WScript.StdOut.WriteLine ret
 WScript.Quit(0)
 
 

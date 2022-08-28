@@ -19,8 +19,12 @@ Dim bookPath
 '' module include sht.cls
 Dim modulePathSelect
 Dim pathToExport
+Dim isExportSheet
+Dim isExportForm
 pathToExport = ""
 modulePathSelect = ""
+isExportSheet = True
+isExportForm = True
 If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
 ElseIf WScript.Arguments.Count = 2 Then
@@ -30,15 +34,26 @@ ElseIf WScript.Arguments.Count = 3 Then
     bookPath = WScript.Arguments(0)
     pathToExport = WScript.Arguments(1)
     modulePathSelect = WScript.Arguments(2)
+ElseIf WScript.Arguments.Count = 5 Then
+    bookPath = WScript.Arguments(0)
+    pathToExport = WScript.Arguments(1)
+    modulePathSelect = WScript.Arguments(2)
+    isExportSheet = WScript.Arguments(3)
+    isExportForm =  WScript.Arguments(4)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
 End If
 
+isExportSheet = True
+isExportForm = True
+
 '' debug output information
 DebugWriteLine "bookPath", bookPath
 DebugWriteLine "pathToExport", pathToExport
 DebugWriteLine "modulePathSelect", modulePathSelect
+DebugWriteLine "isExportSheet", isExportSheet
+DebugWriteLine "isExportForm", isExportForm
 
 '' test bookPath
 If fso.FileExists(bookPath) = False Then
@@ -107,15 +122,19 @@ For Each vbComponent In VBComponents
     If vbComponent.CodeModule.CountOfLines > 0 And isExport Then
         If TypeOfModule = "" Then
             ' do nothing
-            DebugWriteLine "Next is not exported", vbComponent.Name
-        ElseIF vbComponent.Type = 100 Then
+            DebugWriteLine "Next is not exported1", vbComponent.Name
+        ElseIF vbComponent.Type = 100 And isExportSheet Then
             sheetObjContents = vbComponent.CodeModule.Lines(1, vbComponent.CodeModule.CountOfLines)
             ExportSheetModule modulePath, sheetObjContents
-        Else
+        ElseIf vbComponent.Type = 1  Then 'bas
+            ExportNormalModule modulePath, vbComponent
+        ElseIf vbComponent.Type = 2  Then 'cls
+            ExportNormalModule modulePath, vbComponent
+        ElseIf vbComponent.Type = 3   And isExportForm Then 'frm
             ExportNormalModule modulePath, vbComponent
         End If
     Else
-        DebugWriteLine "Next is not exported", vbComponent.Name
+        DebugWriteLine "Next is not exported2", vbComponent.Name
     End If
 Next
 

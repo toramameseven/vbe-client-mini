@@ -36,19 +36,43 @@ Dim objExcel
 set objExcel = book.Application
 
 '' export modules
-
 If book.VBProject.Protection <> 0 Then
     objExcel.Close
     set objExcel = Nothing
     WScript.Quit(10)
 end If
 
+On Error Resume Next
+'' do something
 Dim VBComponents
 Set VBComponents = book.VBProject.VBComponents
 Dim count
-count = VBComponents.Count
-
+' count = VBComponents.Count
+' WScript.StdOut.WriteLine count
+count = 0
+Dim vbComponent
+For Each vbComponent In VBComponents
+  If vbComponent.CodeModule.CountOfLines > 0 Then
+      IF vbComponent.Type = 100 Then
+          count = count + 1
+      ElseIf vbComponent.Type = 1  Then 'bas
+          count = count + 1
+      ElseIf vbComponent.Type = 2  Then 'cls
+          count = count + 1
+      ElseIf vbComponent.Type = 3 Then 'frm
+          count = count + 2
+      End If
+  End If
+Next
 WScript.StdOut.WriteLine count
+
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Error get vba modules."
+    WScript.Quit(Err.Number)
+End If
+On Error Goto 0
+
+
 Set book = Nothing
 Set objExcel = Nothing
 Set fso = Nothing
