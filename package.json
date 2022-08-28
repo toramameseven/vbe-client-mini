@@ -54,11 +54,11 @@
 			},
 			{
 				"command": "editor.checkout",
-				"title": "Update the select vba module"
+				"title": "Update the select Vba module"
 			},
 			{
 				"command": "command.commit-all",
-				"title": "Commit All modules"
+				"title": "Commit All Vba modules"
 			}
 		],
 		"menus": {
@@ -86,7 +86,7 @@
 				{
 					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
 					"command": "command.commit-all",
-					"group": "2_workspace"
+					"group": "myGroup@5"
 				}
 			],
 			"editor/context": [
@@ -119,28 +119,31 @@
 				"vbecm.vbsEncode": {
 					"type": "string",
 					"default": "windows-31j",
-					"description": "Set system encode. If Japanese, windows-31j",
+					"description": "Set system encoding. If Japanese, windows-31j",
 					"order": 2
 				}
 			}
 		}
 	},
 	"scripts": {
-    "precompile": "rimraf out",
+		"precompile": "rimraf out",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
-    "do-test": "node ./out/runTest.js",
+		"do-test": "node ./out/runTest.js",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-		"test-compile": "tsc -p ./"
+		"test-compile": "tsc -p ./",
+		"prepackage": "npm run pretest",
+		"package": "vsce package --target win32-x64"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.3",
+		"@types/encoding-japanese": "^2.0.0",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/iconv-lite": "^0.0.1",
@@ -162,6 +165,7 @@
 	"dependencies": {
 		"chai": "^4.3.6",
 		"dir-compare": "^4.0.0",
+		"encoding-japanese": "^2.0.0",
 		"fs-extra": "^10.1.0",
 		"fstream": "^1.0.12",
 		"iconv-lite": "^0.6.3",

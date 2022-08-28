@@ -6,7 +6,8 @@ import * as statusBar from './statusBar';
 import * as vbs from './vbsModule';
 import { vbeOutput } from './vbeOutput';
 import * as handler from './handlers';
-
+import * as fse from 'fs-extra';
+import * as encoding from 'encoding-japanese';
 
 
 // this method is called when your extension is activated
@@ -80,6 +81,44 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommit);
 
+
+  // //when open file check japanese encode
+	// vscode.workspace.onDidOpenTextDocument(function(e){
+	// 	const fname = e.fileName.replace(/\\/g,'/');
+	// 	if (fname.indexOf('/.vscode') > -1){
+	// 		return;
+	// 	}
+
+	// 	//workspaceデフォルトのエンコードを取得
+	// 	const  defaultEncode = vscode.workspace.getConfiguration().get('files.encoding');// utf8 shiftjis eucjp
+
+  //   //vscode.window.activeTextEditor?.document.
+
+
+	// 	//元ファイルを開いてエンコードを調べる
+	// 	fse.readFile(fname, function (err, textx) {
+  //     const text = e.getText();
+	// 		if (text.length === 0){
+	// 			return;
+	// 		}
+	// 		const sourceEncode = encoding.detect(text);// UTF8 SJIS EUCJP ASCII
+	// 		if (!sourceEncode){
+	// 			return;
+	// 		}
+
+	// 		const sourceEncodeLowerCase = sourceEncode.toLowerCase() === 'sjis' ? 'shiftjis': sourceEncode.toLowerCase();
+
+	// 		let mes = '';
+	// 		if (sourceEncodeLowerCase !== defaultEncode && sourceEncodeLowerCase !== 'ascii'){
+	// 			mes = 'encoding not match!! reopen with [' + sourceEncode + '] ' + fname;
+	// 			vscode.window.showWarningMessage(mes);
+	// 		}else{
+	// 			mes = 'encoding match with workspace default(' + defaultEncode + '). [' + sourceEncode + '] ' + e.fileName;
+	// 			vscode.window.setStatusBarMessage(mes,5000);
+	// 		}
+	// 	});
+	// });	
+
   
   displayMenus(true);
   // update status bar item once at start
@@ -104,5 +143,7 @@ const displayMenus = (isOn : boolean) =>{
   vscode.commands.executeCommand('setContext', 'vbecm.showVbsCommand', isOn);
   statusBar.updateStatusBarItem(!isOn);
 };
+
+
 
 
