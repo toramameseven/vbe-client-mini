@@ -110,6 +110,10 @@ You should better exclude this folder from the explorer and the search.
 
 ## Release Notes
 
+0.0.3 test release.
+
+* When you commit a frm module, you fail to commit at 0.0.2. Fixed.
+
 0.0.2 test release.
 
 * When you run a sub functions that are in some modules, vbecm can not detect the module the function includes.

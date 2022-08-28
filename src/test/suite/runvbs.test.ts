@@ -6,41 +6,23 @@ import * as vbs from '../../vbsModule';
 import * as common  from '../../common';
 import { expect } from 'chai';
 
-
-function getTestPath(){
-  const xlsPath = path.resolve(__dirname, '../../../xlsms');
-  const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
-  // windows display size,100% or others(125%)
-  let displaySize = 120;
-  const testDir = displaySize === 100 ? 'src_macrotest_test.xlsm' : 'src_macrotest_test_note.xlsm';
-  const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
-  const pathSrcExpect = path.resolve(xlsPath, testDir);
-  const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
-  const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
-  const pathTestModule = path.resolve(pathSrc, 'Module1.bas');
-
-  return {
-    pathSrc,
-    pathSrcBase,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-    pathTestModule
-  };
-}
+const xlsPath = path.resolve(__dirname, '../../../xlsms');
+const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
+// windows display size,100% or others(125%)
+let displaySize = 120;
+const testDir = displaySize === 100 ? 'src_macrotest_test.xlsm' : 'src_macrotest_test_note.xlsm';
+const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
+const pathSrcExpect = path.resolve(xlsPath, testDir);
+const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
+const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
+const pathTestModuleBas = path.resolve(pathSrc, 'Module1.bas');
+const pathTestModuleCls = path.resolve(pathSrc, 'Class1.cls');
+const pathTestModuleFrm = path.resolve(pathSrc, 'UserForm1.frm');
+const pathTestModuleShtCls = path.resolve(pathSrc, 'Sheet1.sht.cls');
 
 
 describe('#vbsModules.exportModulesToScrAndBase', () => {
   
-  const {
-    pathSrc,
-    pathSrcBase,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-  } = getTestPath();
-
-
   before('#Before exportModulesToScrAndBase', async function(){
     this.timeout(60000);
 
@@ -68,13 +50,6 @@ describe('#vbsModules.exportModulesToScrAndBase', () => {
 
   // check
   describe('##vbs Test main', () => {
-    const {
-      pathSrc,
-      pathSrcExpect,
-      bookPath,
-      bookPathOriginal,
-    } = getTestPath();
-
     ['create folder and export to the folder','export to created folder'].forEach(
       async (message) => {
         it(message, async () => {
@@ -87,15 +62,7 @@ describe('#vbsModules.exportModulesToScrAndBase', () => {
 
 
 describe('#vbsModules.importModules', () => {
-  
-  const {
-    pathSrc,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-  } = getTestPath();
-
-  before(async function(){
+    before(async function(){
     this.timeout(60000);
     await vbs.exportModulesToScrAndBase(bookPath); 
     await vbs.importModules(bookPath);
@@ -113,13 +80,6 @@ describe('#vbsModules.importModules', () => {
 
 //
 describe('#vbsModules.exportFrxModules', () => {
-  const {
-    pathSrc,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-  } = getTestPath();
-
   // check
   describe('##exportFrxModules main', async function(){
     this.timeout(60000);
@@ -137,45 +97,58 @@ describe('#vbsModules.exportFrxModules', () => {
 });
 
 describe('#vbsModules.commitModule', function(){
-  const {
-    pathSrc,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-    pathTestModule
-  } = getTestPath();
-
   // check
-  it('## commit modules', async function(){
+  it('## commit modules bas', async function(){
     this.timeout(60000);
-    let r = await vbs.commitModule(bookPath, pathTestModule); 
+    let r = await vbs.commitModule(bookPath, pathTestModuleBas); 
+    assert.strictEqual(r, true);
+  });
+  it('## commit modules cls', async function(){
+    this.timeout(60000);
+    let r = await vbs.commitModule(bookPath, pathTestModuleCls); 
+    assert.strictEqual(r, true);
+  });
+  it('## commit modules frm', async function(){
+    this.timeout(60000);
+    let r = await vbs.commitModule(bookPath, pathTestModuleFrm); 
+    assert.strictEqual(r, true);
+  });
+  it('## commit modules sht.cls', async function(){
+    this.timeout(60000);
+    let r = await vbs.commitModule(bookPath, pathTestModuleShtCls); 
     assert.strictEqual(r, true);
   });
 });
 
 describe('#vbsModules.updateModule', function(){
-  const {
-    pathSrc,
-    pathSrcExpect,
-    bookPath,
-    bookPathOriginal,
-    pathTestModule
-  } = getTestPath();
-
   // check
-  it('## update module', async function(){
+  it('## update module bas', async function(){
     this.timeout(60000);
 
-    let r = await vbs.updateModule(bookPath, pathTestModule); 
+    let r = await vbs.updateModule(bookPath, pathTestModuleBas); 
+    assert.strictEqual(r, true);
+  });
+  it('## update module cls', async function(){
+    this.timeout(60000);
+
+    let r = await vbs.updateModule(bookPath, pathTestModuleCls); 
+    assert.strictEqual(r, true);
+  });
+  it('## update module frm', async function(){
+    this.timeout(60000);
+
+    let r = await vbs.updateModule(bookPath, pathTestModuleFrm); 
+    assert.strictEqual(r, true);
+  });
+  it('## update module sht.cls', async function(){
+    this.timeout(60000);
+
+    let r = await vbs.updateModule(bookPath, pathTestModuleShtCls); 
     assert.strictEqual(r, true);
   });
 });
 
 describe('#vbsModules.vbaRun', function(){
-  const {
-    bookPath,
-  } = getTestPath();
-
   // check
   it('## rum module', async function(){
     this.timeout(60000);

@@ -207,8 +207,7 @@ export async function importModules(pathBook: string, testConfirm?:TestConfirm) 
   // check tempDir and srcDir
   const moduleBase = path.basename(modulePath);
   const ext = path.extname(moduleBase).toLocaleLowerCase();
-  const moduleFrx = ext === '.frm' ? moduleBase.slice(ext.length) + '.frx': '';
-
+  const moduleFrx = ext === '.frm' ? path.basename(moduleBase, path.extname(moduleBase)) + '.frx': '';
 
   const doTest = testConfirm !== undefined;
   const goNext = !doTest || await testConfirm(path.resolve(tempDir, moduleBase), path.resolve(baseDir, moduleBase), '');
