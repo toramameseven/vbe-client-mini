@@ -10,6 +10,11 @@ This extension thinks Excel as Excel Server.
 
 before use this extension, you must back up your xlsm or xlam file.
 
+## Requirement
+
+* Windows 10
+* Excel
+
 ### explorer context menu
 
 * Export vba modules form a xlsm file to a folder.
@@ -35,7 +40,7 @@ before use this extension, you must back up your xlsm or xlam file.
 
 ### settings
 
-* At cjk language area, vbs message not work good beside Japanese. Set encode option
+* At cjk language area, vbs message not work good beside Japanese. Set encoding option
   * vbecm.vbsEncode, for japanese 'windows-31j'
 
 let's fun vba life.
@@ -59,7 +64,8 @@ $ vsce publish
 
 ## Known problems
 
-* At cjk language area, vbs message not work good beside Japanese. Please customize your encode.
+* If the encoding of your vba modules is not convertible to utf8, do not save the modules on utf8.
+* At cjk language area, vbs message not work good beside Japanese. Please customize your encoding.
 * Sometimes, Excel remain on background. You should kill the process on a task manager.
 * When you export modules, vbecm asks "Do you want to export" or etc. in notification window.
   Unless you click Yes or No, you can not select next command.
