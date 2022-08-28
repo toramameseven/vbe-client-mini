@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1 
    Caption         =   "UserForm1"
    ClientHeight    =   3036
-   ClientLeft      =   108
-   ClientTop       =   456
-   ClientWidth     =   4584
+   ClientLeft      =   105
+   ClientTop       =   450
+   ClientWidth     =   4590
    OleObjectBlob   =   "UserForm1.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End

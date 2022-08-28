@@ -1,26 +1,20 @@
 import * as assert from 'assert';
 import iconv = require('iconv-lite');
 import path = require('path');
-import * as fs from 'fs'; 
 import * as fse from 'fs-extra';
-//import { compare, compareSync, Options, Result, DifferenceState } from 'dir-compare';
-import { disconnect } from 'process';
 import * as vbs from '../../vbsModule';
 import * as common  from '../../common';
-import * as zip  from '../../archive';
-import * as vscode from 'vscode';
 import { expect } from 'chai';
 
 
 function getTestPath(){
   const xlsPath = path.resolve(__dirname, '../../../xlsms');
   const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
-
+  // windows display size,100% or others(125%)
+  let displaySize = 120;
+  const testDir = displaySize === 100 ? 'src_macrotest_test.xlsm' : 'src_macrotest_test_note.xlsm';
   const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
-  // for desktop pc
-  //const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test.xlsm');
-  // for note pc
-  const pathSrcExpect = path.resolve(xlsPath, 'src_macrotest_test_note.xlsm');
+  const pathSrcExpect = path.resolve(xlsPath, testDir);
   const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
   const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
   const pathTestModule = path.resolve(pathSrc, 'Module1.bas');
