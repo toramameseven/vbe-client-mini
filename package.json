@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -46,7 +46,7 @@
 			},
 			{
 				"command": "editor.run",
-				"title": "Run select Sub function"
+				"title": "Run Sub function"
 			},
 			{
 				"command": "editor.commit",
@@ -54,7 +54,7 @@
 			},
 			{
 				"command": "editor.checkout",
-				"title": "Update the select Vba module"
+				"title": "Fetch VBA module"
 			},
 			{
 				"command": "command.commit-all",
@@ -64,44 +64,44 @@
 		"menus": {
 			"explorer/context": [
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.export",
 					"group": "myGroup@1"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.import",
 					"group": "myGroup@2"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
 					"command": "command.compile",
 					"group": "myGroup@3"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
 					"command": "command.exportfrx",
 					"group": "myGroup@4"
 				},
 				{
-					"when": "resourceExtname =~ /\\.xlsm|\\.xlam/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
 					"command": "command.commit-all",
 					"group": "myGroup@5"
 				}
 			],
 			"editor/context": [
 				{
-					"when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
 					"command": "editor.run",
 					"group": "myGroup@1"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
 					"command": "editor.commit",
 					"group": "myGroup@2"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas|\\.cls|\\.frm/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
 					"command": "editor.checkout",
 					"group": "myGroup@3"
 				}

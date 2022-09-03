@@ -120,30 +120,30 @@ describe('#vbsModules.commitModule', function(){
   });
 });
 
-describe('#vbsModules.updateModule', function(){
+describe('#vbsModules.fetchModule', function(){
   // check
   it('## update module bas', async function(){
     this.timeout(60000);
 
-    let r = await vbs.updateModule(bookPath, pathTestModuleBas); 
+    let r = await vbs.fetchModule(bookPath, pathTestModuleBas); 
     assert.strictEqual(r, true);
   });
   it('## update module cls', async function(){
     this.timeout(60000);
 
-    let r = await vbs.updateModule(bookPath, pathTestModuleCls); 
+    let r = await vbs.fetchModule(bookPath, pathTestModuleCls); 
     assert.strictEqual(r, true);
   });
   it('## update module frm', async function(){
     this.timeout(60000);
 
-    let r = await vbs.updateModule(bookPath, pathTestModuleFrm); 
+    let r = await vbs.fetchModule(bookPath, pathTestModuleFrm); 
     assert.strictEqual(r, true);
   });
   it('## update module sht.cls', async function(){
     this.timeout(60000);
 
-    let r = await vbs.updateModule(bookPath, pathTestModuleShtCls); 
+    let r = await vbs.fetchModule(bookPath, pathTestModuleShtCls); 
     assert.strictEqual(r, true);
   });
 });

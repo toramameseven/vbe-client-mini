@@ -13,17 +13,20 @@ import * as common from './common';
 export async function handlerExportModules(uriBook:vscode.Uri){
   displayMenus(false);
 
-  const diffTestAndConfirm: vbs.TestConfirm = async (baseDire,srcDir, diffTitle) => {
+  // function to test source is modified?
+  const diffTestAndConfirm: vbs.TestConfirm = async (baseDire, srcDir, vbaDir, toDiff) => {
     const ans = await vbs.comparePathAndGo(
       baseDire,
       srcDir, 
-      diffTitle, 
+      vbaDir,
+      toDiff, 
       'Some files modified in the Source folder. Check Output Window. Do you want to export?');
     return ans === 'Yes' ? true: false;
   };
-
+  
+  // export the source folder and the base folder
   try{
-    const r = await vbs.exportModulesToScrAndBase(uriBook.fsPath, diffTestAndConfirm);
+    const r = await vbs.exportModulesToScrAndBase(uriBook.fsPath, '', diffTestAndConfirm);
     if (r){
       showInformationMessage('Success export modules.');
     }
@@ -47,27 +50,28 @@ export async function handlerExportModules(uriBook:vscode.Uri){
  export async function handlerUpdateAsync(uriModule: vscode.Uri) {
   displayMenus(false);
 
-  // if the file does not exist, return ''
-  const xlsmPath = await getExcelPathFromModule(uriModule);
+  // if the module file does not exist, return ''
+  const bookPath = await getExcelPathFromModule(uriModule);
   const modulePath = uriModule.fsPath;
-  if (xlsmPath === '') {
-    showErrorMessage(`Excel file does not exist to checkout.: ${modulePath}`);
+  if (bookPath === '') {
+    showErrorMessage(`Excel file does not exist to update.: ${modulePath}`);
     displayMenus(true);
     return;
   }
 
   // todo check local modified
-  const diffTestAndConfirm: vbs.TestConfirm = async (baseFile, srcFile, diffTitle) => {
+  const diffTestAndConfirm: vbs.TestConfirm = async (baseFile, srcFile, vbe, diffTitle) => {
     const ans = await vbs.comparePathAndGo(
       baseFile,
       srcFile, 
+      vbe,
       diffTitle, 
       'file modified in the Source folder. Check Output Window. Do you want to update the file?');
     return ans === 'Yes' ? true: false;
   };
 
   try {
-    const r = await vbs.updateModule(xlsmPath, modulePath, diffTestAndConfirm);
+    const r = await vbs.fetchModule(bookPath, modulePath, diffTestAndConfirm);
     r && showInformationMessage('Success update.');
   } catch (e) {
     showErrorMessage('Error update.');
@@ -87,12 +91,13 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
   displayMenus(false);
   
   // temp vs vase
-  const diffTestAndConfirm: vbs.TestConfirm = async (baseDir: string, targetDir: string) =>
+  const diffTestAndConfirm: vbs.TestConfirm = async (baseDir: string, srcDir: string, targetDir: string) =>
   {
     const ans = await vbs.comparePathAndGo(
       baseDir, 
+      srcDir,
       targetDir, 
-      'base, vbe', 
+      'vbe', 
       'Excel Vba may be modified. Check output tab. Do you import?');
     return ans === 'Yes' ? true: false;
   };
@@ -118,21 +123,22 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
  * @param uriFolder 
  */
  export async function handlerCommitAllModule(uriFolder: vscode.Uri) {
-  const xlsmPath = await getExcelPathSrcFolder(uriFolder);
+  const bookPath = await getExcelPathSrcFolder(uriFolder);
   displayMenus(false);
 
-  const diffTestAndConfirm: vbs.TestConfirm = async (baseDir: string, vbeDir: string) =>
+  const diffTestAndConfirm: vbs.TestConfirm = async (baseDir: string, srcDir: string, vbeDir: string) =>
   {
     const ans = await vbs.comparePathAndGo(
       baseDir, 
       vbeDir, 
-      'base, vbe',
+      srcDir,
+      'vbe',
       'Excel Vba may be modified. Check output tab. Do you commit?');
     return ans === 'Yes' ? true: false;
   };
 
   try {
-    const r = await vbs.importModules(xlsmPath, diffTestAndConfirm);
+    const r = await vbs.importModules(bookPath, diffTestAndConfirm);
     r && showInformationMessage('Success commit all.');
   } catch (e) {
     showErrorMessage('Error commit all.');
@@ -152,27 +158,28 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
  export async function handlerCommitModule(uriModule: vscode.Uri) {
   displayMenus(false);
 
-  const diffTestAndConfirm: vbs.TestConfirm = async (baseFile:string, vbeFile:string) =>
+  const diffTestAndConfirm: vbs.TestConfirm = async (baseFile:string, srcFile: string, vbeFile:string) =>
   {
     const ans = await vbs.comparePathAndGo(
       baseFile, 
+      srcFile,
       vbeFile, 
-      'base, vbe',
+      'vbe',
       'Excel Vba may be modified. Check output tab. Do you commit?');
     return ans === 'Yes' ? true: false;
   };
 
 
-  const xlsmPath = await getExcelPathFromModule(uriModule);
+  const bookPath = await getExcelPathFromModule(uriModule);
   const modulePath = uriModule.fsPath;
-  if (await common.dirExists(xlsmPath)) {
+  if (await common.dirExists(bookPath)) {
     showErrorMessage(`Excel file does not exist to commit.: ${modulePath}`);
     displayMenus(true);
     return;
   }
 
   try {
-    const r = await vbs.commitModule(xlsmPath, modulePath, diffTestAndConfirm);
+    const r = await vbs.commitModule(bookPath, modulePath, diffTestAndConfirm);
     r && showInformationMessage('Success commit.');
   } catch (e) {
     showErrorMessage('Error commit.');
@@ -231,7 +238,7 @@ export function handlerCompile(uriBook: vscode.Uri) {
 export async function handlerVbaRun(textEditor: TextEditor, edit: vscode.TextEditorEdit, uriModule: vscode.Uri) {
   displayMenus(false);
   // excel file path
-  const xlsmPath = await getExcelPathFromModule(uriModule);
+  const bookPath = await getExcelPathFromModule(uriModule);
   const modulePath = uriModule.fsPath;
 
   // sub function
@@ -246,7 +253,7 @@ export async function handlerVbaRun(textEditor: TextEditor, edit: vscode.TextEdi
   }
 
   try {
-    await vbs.vbaSubRun(xlsmPath, path.basename(modulePath), funcName);
+    await vbs.vbaSubRun(bookPath, path.basename(modulePath), funcName);
     showInformationMessage('Success run, may be.');
   } catch (e) {
     showErrorMessage('Error run.');

@@ -60,7 +60,7 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 ```
 npm install -g vsce
 vsce package --target win32-x64
-vsce publish --packagePath PATH_TO_WIN32X64_VSIX
+vsce publish
 ```
 
 ## Known problems
@@ -109,6 +109,13 @@ You should better exclude this folder from the explorer and the search.
 
 
 ## Release Notes
+
+0.0.4 test release.
+
+* Verify logic is fail. When VBA engine import modules, the case conversion and whitespace conversions occur.
+  So, sometimes the verify errors occur. Now vbecm does not check modules when you import modules.
+* Context menus is displayed when no vba modules is selected. Fix this.
+* Some titles of context menu are changed.
 
 0.0.3 test release.
 
