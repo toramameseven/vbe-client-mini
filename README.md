@@ -28,16 +28,16 @@ before use this extension, you must back up your xlsm or xlam file.
 * Export frx modules
   * You can not know frx is modified or not.  If you modified a frm on the vscode,
     you can export only frx files.
-* Commit all modules form a Src_[xxx.xlsm] folder
-  * you can commit all modules in the source folder.
+* Push all modules form a Src_[xxx.xlsm] folder
+  * you can push all modules in the source folder to the excel book.
 
 ### editor context menu
 
-* commit vba module to a xlsm file on an editor.
+* Push vba module to a xlsm file on an editor.
   * Selected module is imported to a xlsm file.
 * run Sub() function on a editor.
   * select a sub XXX() line, and right click, and select run.
-* update selected modules. (checkout a module form excel.)
+* Pull selected module form xlsm file.
 
 ### settings
 

@@ -20,7 +20,7 @@ export async function handlerExportModules(uriBook:vscode.Uri){
       srcDir, 
       vbaDir,
       toDiff, 
-      'Some files modified in the Source folder. Check Output Window. Do you want to export?');
+      'Some files modified in the Source folder. Do you want to export? Check Output tab.');
     return ans === 'Yes' ? true: false;
   };
   
@@ -66,15 +66,15 @@ export async function handlerExportModules(uriBook:vscode.Uri){
       srcFile, 
       vbe,
       diffTitle, 
-      'file modified in the Source folder. Check Output Window. Do you want to update the file?');
+      'This file is modified. Do you want to pull a file from excel?');
     return ans === 'Yes' ? true: false;
   };
 
   try {
     const r = await vbs.fetchModule(bookPath, modulePath, diffTestAndConfirm);
-    r && showInformationMessage('Success update.');
+    r && showInformationMessage('Success pull.');
   } catch (e) {
-    showErrorMessage('Error update.');
+    showErrorMessage('Error pull.');
     showErrorMessage(e);
   }
   finally
@@ -98,7 +98,7 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
       srcDir,
       targetDir, 
       'vbe', 
-      'Excel Vba may be modified. Check output tab. Do you import?');
+      'Excel Vba may be modified. Do you import? Check output tab.');
     return ans === 'Yes' ? true: false;
   };
 
@@ -133,15 +133,15 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
       vbeDir, 
       srcDir,
       'vbe',
-      'Excel Vba may be modified. Check output tab. Do you commit?');
+      'Excel Vba may be modified. Do you push all? Check output tab.');
     return ans === 'Yes' ? true: false;
   };
 
   try {
     const r = await vbs.importModules(bookPath, diffTestAndConfirm);
-    r && showInformationMessage('Success commit all.');
+    r && showInformationMessage('Success push all.');
   } catch (e) {
-    showErrorMessage('Error commit all.');
+    showErrorMessage('Error push all.');
     showErrorMessage(e);
   }
   finally
@@ -165,7 +165,7 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
       srcFile,
       vbeFile, 
       'vbe',
-      'Excel Vba may be modified. Check output tab. Do you commit?');
+      'Excel Vba may be modified.Do you push this file?');
     return ans === 'Yes' ? true: false;
   };
 
@@ -180,9 +180,9 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
 
   try {
     const r = await vbs.commitModule(bookPath, modulePath, diffTestAndConfirm);
-    r && showInformationMessage('Success commit.');
+    r && showInformationMessage('Success push.');
   } catch (e) {
-    showErrorMessage('Error commit.');
+    showErrorMessage('Error push.');
     showErrorMessage(e);
   }
   finally
@@ -264,15 +264,6 @@ export async function handlerVbaRun(textEditor: TextEditor, edit: vscode.TextEdi
     displayMenus(true);
   }
 }
-
-
-
-
-
-
-
-
-
 
 /**
  * set display vbe menu on or off

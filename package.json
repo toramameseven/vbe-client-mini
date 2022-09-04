@@ -42,7 +42,7 @@
 			},
 			{
 				"command": "command.exportfrx",
-				"title": "Export frx modules"
+				"title": "Export only frx modules"
 			},
 			{
 				"command": "editor.run",
@@ -50,15 +50,15 @@
 			},
 			{
 				"command": "editor.commit",
-				"title": "Commit VBA module"
+				"title": "Push VBA module"
 			},
 			{
 				"command": "editor.checkout",
-				"title": "Fetch VBA module"
+				"title": "Pull VBA module"
 			},
 			{
 				"command": "command.commit-all",
-				"title": "Commit All Vba modules"
+				"title": "Push All Vba modules"
 			}
 		],
 		"menus": {
