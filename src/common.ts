@@ -2,12 +2,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 
 
-/**
- * test file exits
- * @param filepath
- * @returns 
- */
- export async function fileExists(filepath: string) {
+export async function fileExists(filepath: string) {
   try {
     const res = (await fse.promises.lstat(filepath)).isFile();
     return (res);
@@ -16,12 +11,8 @@ import * as path from 'path';
   }
 }
 
-/**
- * test dir exists
- * @param filepath
- * @returns 
- */
- export async function dirExists(filepath: string) {
+
+export async function dirExists(filepath: string) {
   try {
     const res = (await fse.promises.lstat(filepath)).isDirectory();
     return (res);
@@ -37,28 +28,31 @@ export function myLog(message: string, title: string = '(_empty_)')
 }
 
 
-export async function deleteModulesInSrc(pathSrc: string){
+export async function rmDirIfExist(pathFolder: string, option: {}){
   try {
 
-    const isExist = await dirExists(pathSrc);
+    const isExist = await dirExists(pathFolder);
     if (!isExist)
     {
-      // フォルダが存在しないので 消さない
+      // no folder no delete
       return;
     }
+    await fse.promises.rm(pathFolder, option);
+  } catch (error) {
+    throw(error);
+  }
+}
 
-    //ファイルとディレクトリのリストが格納される(配列)
-    const files = fse.readdirSync(pathSrc);
-    
-    //ディレクトリのリストに絞る
-    const moduleList = files.forEach((file) => {
-        const fullPath = path.resolve(pathSrc, file);
-        const isFile = fse.statSync(fullPath).isFile();
-        const ext  = path.extname(file).toLowerCase();
-        if (isFile && ['.bas','.frm','.cls', '.frx'].includes(ext)){
-          fse.rmSync(fullPath);
-        }
-    });   
+export async function rmFileIfExist(pathFile: string, option: {}){
+  try {
+
+    const isExist = await fileExists(pathFile);
+    if (!isExist)
+    {
+      // no file no delete
+      return;
+    }
+    await fse.promises.rm(pathFile, option);
   } catch (error) {
     throw(error);
   }

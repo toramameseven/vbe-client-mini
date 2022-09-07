@@ -8,6 +8,7 @@ import { vbeOutput } from './vbeOutput';
 import * as handler from './handlers';
 import * as fse from 'fs-extra';
 import * as encoding from 'encoding-japanese';
+import { FileDiff, FileDiffProvider } from './diffFiles';
 
 
 // this method is called when your extension is activated
@@ -59,6 +60,12 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommitAll);
 
+  const commandModified = vscode.commands.registerCommand(
+    'command.modified', 
+    handler.handlerCheckModified
+  );
+  context.subscriptions.push(commandCommitAll);
+
   //   --------------editor
   // run
   const commandRun = vscode.commands.registerTextEditorCommand (
@@ -80,6 +87,11 @@ export function activate(context: vscode.ExtensionContext) {
     handler.handlerCommitModule
   );
   context.subscriptions.push(commandCommit);
+  
+  
+  //
+  const fileDiffProvider = new FileDiffProvider(['aaaa','bbbb']);
+	vscode.window.registerTreeDataProvider('vbeDiff', fileDiffProvider);
 
 
   // //when open file check japanese encode
@@ -108,7 +120,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// 		const sourceEncodeLowerCase = sourceEncode.toLowerCase() === 'sjis' ? 'shiftjis': sourceEncode.toLowerCase();
 
-	// 		let mes = '';
+	// 		let mes = STRING_EMPTY;
 	// 		if (sourceEncodeLowerCase !== defaultEncode && sourceEncodeLowerCase !== 'ascii'){
 	// 			mes = 'encoding not match!! reopen with [' + sourceEncode + '] ' + fname;
 	// 			vscode.window.showWarningMessage(mes);

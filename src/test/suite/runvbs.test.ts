@@ -8,11 +8,13 @@ import { expect } from 'chai';
 
 const xlsPath = path.resolve(__dirname, '../../../xlsms');
 const pathSrc = path.resolve(xlsPath, 'src_macrotest.xlsm');
+const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm', vbs.FOLDER_BASE);
+const pathSrcVbe = path.resolve(xlsPath, 'src_macrotest.xlsm', vbs.FOLDER_VBE);
 // windows display size,100% or others(125%)
 let displaySize = 120;
-const testDir = displaySize === 100 ? 'src_macrotest_test.xlsm' : 'src_macrotest_test_note.xlsm';
-const pathSrcBase = path.resolve(xlsPath, 'src_macrotest.xlsm/.base');
-const pathSrcExpect = path.resolve(xlsPath, testDir);
+const expectDir = displaySize === 100 ? 'src_macrotest_test.xlsm' : 'src_macrotest_test_note.xlsm';
+const pathSrcExpect = path.resolve(xlsPath, expectDir);
+const folderExpectFrx = path.resolve(xlsPath, 'src_macrotest_expect_frx.xlsm');
 const bookPath = path.resolve(xlsPath, 'macrotest.xlsm');
 const bookPathOriginal = path.resolve(xlsPath, 'macrotest_org.xlsm');
 const pathTestModuleBas = path.resolve(pathSrc, 'Module1.bas');
@@ -20,29 +22,38 @@ const pathTestModuleCls = path.resolve(pathSrc, 'Class1.cls');
 const pathTestModuleFrm = path.resolve(pathSrc, 'UserForm1.frm');
 const pathTestModuleShtCls = path.resolve(pathSrc, 'Sheet1.sht.cls');
 
+//const exportTest = true;
+const importTest = true;
+const exportFrx = true;
+const pushTest = true;
+const pullTest = true;
+const runTest = true;
+const commonTest = true;
 
-describe('#vbsModules.exportModulesToScrAndBase', () => {
+// export test
+describe('#vbsModules.exportModulesForUpdate', () => {
   
-  before('#Before exportModulesToScrAndBase', async function(){
+  before('#Before exportModulesForUpdate', async function(){
     this.timeout(60000);
 
     vbs.closeBook(bookPath);
     (await common.fileExists (bookPath)) && fse.rmSync(bookPath);
     fse.copyFileSync(bookPathOriginal, bookPath);
 
-    await vbs.rmDirIfExist(pathSrc, { recursive: true, force: true });
+    await common.rmDirIfExist(pathSrc, { recursive: true, force: true });
 
     if (await common.dirExists(pathSrc)){
-      await vbs.deleteModulesInSrc(pathSrc);
-      await vbs.deleteModulesInSrc(pathSrcBase);
+      await vbs.deleteModulesInFolder(pathSrc, true);
+      await vbs.deleteModulesInFolder(pathSrcBase, true);
+      await vbs.deleteModulesInFolder(pathSrcVbe, true);
     }
   });
   
   // test code
-  beforeEach('#Before Each exportModulesToScrAndBase', async function(){
+  beforeEach('#Before Each exportModulesForUpdate', async function(){
     this.timeout(60000);
     try {
-      await vbs.exportModulesToScrAndBase(bookPath);   
+      await vbs.exportModulesForUpdate(bookPath);   
     } catch (error) {
       console.log(error);
     }
@@ -50,105 +61,162 @@ describe('#vbsModules.exportModulesToScrAndBase', () => {
 
   // check
   describe('##vbs Test main', () => {
-    ['create folder and export to the folder','export to created folder'].forEach(
+    ['create folder and export to the folder',
+    'export to created folder'].forEach(
       async (message) => {
-        it(message, async () => {
-        const  r = vbs.comparePath(pathSrc, pathSrcExpect);
-        assert.strictEqual(r.same, true, message);
-      });} 
+        it(message + ' src', async () => {
+          const  r = vbs.comparePath(pathSrc, pathSrcExpect);
+          assert.strictEqual(r.same, true, message + ' src');
+        });
+        it(message + ' base', async () => {
+          const  r = vbs.comparePath(pathSrcBase, pathSrcExpect);
+          assert.strictEqual(r.same, true, message + ' base');
+        });
+        it(message + ' vbe', async () => {
+          const  r = vbs.comparePath(pathSrcVbe, pathSrcExpect);
+          assert.strictEqual(r.same, true, message + ' vbe');
+        });
+      } 
     );
   });
 });
 
 
+// import modules test
 describe('#vbsModules.importModules', () => {
-    before(async function(){
+  
+  if (!importTest) {return;}
+
+  before(async function(){
     this.timeout(60000);
-    await vbs.exportModulesToScrAndBase(bookPath); 
-    await vbs.importModules(bookPath);
+    await vbs.exportModulesForUpdate(bookPath); 
+    await vbs.importModules(bookPath, vbs.STRING_EMPTY);
   });
 
   // check
   describe('##importModules main', async () => {
-    it('## import modules', async () => {
+    const message = 'import';
+    it(message + ' src', async () => {
       const  r = vbs.comparePath(pathSrc, pathSrcExpect);
-      assert.strictEqual(r.same, true, 'import modules');
+      assert.strictEqual(r.same, true, message + ' src');
     });
-
+    it(message + ' base', async () => {
+      const  r = vbs.comparePath(pathSrcBase, pathSrcExpect);
+      assert.strictEqual(r.same, true, message + ' base');
+    });
+    it(message + ' vbe', async () => {
+      const  r = vbs.comparePath(pathSrcVbe, pathSrcExpect);
+      assert.strictEqual(r.same, true, message + ' vbe');
+    });
   });
 });
 
-//
+// export frx modules test
 describe('#vbsModules.exportFrxModules', () => {
-  // check
+  if (!exportFrx) {return;}
+
+  before(async function(){
+    
+    await vbs.deleteModulesInFolder(pathSrc, true);
+    await vbs.deleteModulesInFolder(pathSrcBase, true);
+    await vbs.deleteModulesInFolder(pathSrcVbe, true);
+
+    try {
+      await vbs.exportFrxModules(bookPath); 
+    } catch (error) {
+      //
+    }
+  });
+
+  // check  // todo test if file exists or not
   describe('##exportFrxModules main', async function(){
     this.timeout(60000);
-    it('## export frx modules', async () => {
-      let r = false;      
-      try {
-        await vbs.exportFrxModules(bookPath); 
-        r = true;
-      } catch (error) {
-        //
-      }
-      assert.strictEqual(r, true);
+    const message = 'frx export';
+    it(message + ' src', async () => {
+      const  r = vbs.comparePath(pathSrc, folderExpectFrx);
+      assert.strictEqual(r.same, true, message + ' src');
+    });
+    it(message + ' base', async () => {
+      const  r = vbs.comparePath(pathSrcBase, folderExpectFrx);
+      assert.strictEqual(r.same, true, message + ' base');
+    });
+    it(message + ' vbe', async () => {
+      const  r = vbs.comparePath(pathSrcVbe, folderExpectFrx);
+      assert.strictEqual(r.same, true, message + ' vbe');
     });
   });
 });
 
+// push a module test
 describe('#vbsModules.commitModule', function(){
+
+  before('#Before push module', async function(){
+    this.timeout(60000);
+    try {
+      await vbs.exportModulesForUpdate(bookPath);   
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  if (!pushTest) {return;}
   // check
-  it('## commit modules bas', async function(){
+  it('## push modules bas', async function(){
     this.timeout(60000);
-    let r = await vbs.commitModule(bookPath, pathTestModuleBas); 
+    let r = await vbs.importModules(bookPath, pathTestModuleBas); 
     assert.strictEqual(r, true);
   });
-  it('## commit modules cls', async function(){
+  it('## push modules cls', async function(){
     this.timeout(60000);
-    let r = await vbs.commitModule(bookPath, pathTestModuleCls); 
+    let r = await vbs.importModules(bookPath, pathTestModuleCls); 
     assert.strictEqual(r, true);
   });
-  it('## commit modules frm', async function(){
+  it('## push modules frm', async function(){
     this.timeout(60000);
-    let r = await vbs.commitModule(bookPath, pathTestModuleFrm); 
+    let r = await vbs.importModules(bookPath, pathTestModuleFrm); 
     assert.strictEqual(r, true);
   });
-  it('## commit modules sht.cls', async function(){
+  it('## push modules sht.cls', async function(){
     this.timeout(60000);
-    let r = await vbs.commitModule(bookPath, pathTestModuleShtCls); 
+    let r = await vbs.importModules(bookPath, pathTestModuleShtCls); 
     assert.strictEqual(r, true);
   });
 });
 
-describe('#vbsModules.fetchModule', function(){
+
+// pull a module test
+describe('#vbsModules.pullModule', function(){
+  if (!pullTest) {return;}
   // check
   it('## update module bas', async function(){
     this.timeout(60000);
 
-    let r = await vbs.fetchModule(bookPath, pathTestModuleBas); 
+    let r = await vbs.exportModulesForUpdate(bookPath, pathTestModuleBas); 
     assert.strictEqual(r, true);
   });
   it('## update module cls', async function(){
     this.timeout(60000);
 
-    let r = await vbs.fetchModule(bookPath, pathTestModuleCls); 
+    let r = await vbs.exportModulesForUpdate(bookPath, pathTestModuleCls); 
     assert.strictEqual(r, true);
   });
   it('## update module frm', async function(){
     this.timeout(60000);
 
-    let r = await vbs.fetchModule(bookPath, pathTestModuleFrm); 
+    let r = await vbs.exportModulesForUpdate(bookPath, pathTestModuleFrm); 
     assert.strictEqual(r, true);
   });
   it('## update module sht.cls', async function(){
     this.timeout(60000);
 
-    let r = await vbs.fetchModule(bookPath, pathTestModuleShtCls); 
+    let r = await vbs.exportModulesForUpdate(bookPath, pathTestModuleShtCls); 
     assert.strictEqual(r, true);
   });
 });
 
+// run sub function test
 describe('#vbsModules.vbaRun', function(){
+  if (!runTest) {return;}
   // check
   it('## rum module', async function(){
     this.timeout(60000);
@@ -157,9 +225,11 @@ describe('#vbsModules.vbaRun', function(){
   });
 });
 
-describe('#common.ts', async () => {
 
-  return;
+// run common.ts test
+describe('#common.ts', async () => {
+  if (!commonTest) {return;}
+  //return;
 
   const folderExists = __dirname;
   const folderNotExist = path.resolve(__dirname, 'xxxxxxxxxxxxxxxxx');
@@ -198,5 +268,3 @@ describe('#common.ts', async () => {
     expect(r).is.false;
   });
 });
-
-

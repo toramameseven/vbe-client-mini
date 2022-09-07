@@ -9,137 +9,120 @@ import dirCompare = require('dir-compare');
 import { dirExists, fileExists } from './common';
 import * as common from './common';
 
+export const FOLDER_VBS = 'vbs';
+export const FOLDER_PREFIX_SRC = 'src_';
+export const FOLDER_BASE = '.base';
+export const FOLDER_VBE = '.vbe';
+export const EXT_BASE = '.base';
+export const EXT_VBE = '.vbe';
+export const STRING_EMPTY = '';
 
-
-/**
- * get getVbecmDirs
- * @param uriBook
- * @returns 
- */
-export function getVbecmDirs(bookPath: string, suffix: string = '') {
+export function getVbecmDirs(bookPath: string, suffix: string = STRING_EMPTY) {
   const fileDir = path.dirname(bookPath);
   const baseName = path.basename(bookPath);
-  const srcDir = path.resolve(fileDir, 'src_' + baseName);
-  const baseDir = path.resolve(srcDir, '.base');
+  const srcDir = path.resolve(fileDir, FOLDER_PREFIX_SRC + baseName);
+  const baseDir = path.resolve(srcDir, FOLDER_BASE);
+  const vbeDir = path.resolve(srcDir, FOLDER_VBE);
   const tempDir = path.resolve(fileDir, 'src_' + uuidv4() + '_' + suffix);
 
   return {
-    bookPath,
-    srcDir,
-    baseDir,
-    tempDir
+    bookPath, srcDir, baseDir, vbeDir, tempDir
   };
 }
 
 
-/**
- * 
- */
 export type TestConfirm = { (base: string, src: string, vbe: string, diffTitle: 'src'|'vbe', moduleFileNames?: string[]): Promise<boolean>; };
 
 
-/**
- * export modules from book.
- * @param pathBook 
- * @param testConfirm
- * @returns 
- */
-export async function exportModulesToScrAndBase(pathBook: string, moduleFileName: string = '', testConfirm?:TestConfirm ) : Promise<boolean|undefined>{
-  const {srcDir, baseDir, tempDir} = getVbecmDirs(pathBook, 'exportModulesToScrAndBase');
-    
-  // export to uuid folder, all modules or selected module
+export async function exportModulesForUpdate(pathBook: string, moduleFineNameOrPath: string = STRING_EMPTY, testConfirm?:TestConfirm ) : Promise<boolean|undefined>{
+  const {srcDir, baseDir, vbeDir} = getVbecmDirs(pathBook, 'exportModulesForUpdate');
+
+  // get base name
+  const moduleFileName = path.basename(moduleFineNameOrPath);
+   
+  // test already exported
+  const isExistSrc = await dirExists(srcDir);  
+
+  // export modules to vbe folder
   try {
-    await exportModuleAsync(pathBook, tempDir, moduleFileName);  
+    const existSrcFile = await common.fileExists(srcDir);
+    if (existSrcFile) {
+      throw(Error(`file ${srcDir} exists. can not create folder`));
+    } 
+    fse.mkdirSync(srcDir, { recursive: true });
+    // all module are update in vbeDir
+    await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY);  
   } catch (error) {
     console.log(error);
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
     throw(error);
   }
  
-  // test already exported
-  const isExistSrc = await dirExists(srcDir);
-
   // check base and srcDir, some file in srcDir are modified?
   if (isExistSrc && testConfirm){
-    const ans = await testConfirm(baseDir, srcDir, tempDir, 'src', [moduleFileName]);
+    const ans = await testConfirm(baseDir, srcDir, vbeDir, 'src', [moduleFileName]);
     if (ans === false){
-      await rmDirIfExist(tempDir, { recursive: true, force: true });
       return false;
     }
   }
 
   // copy file or path
   const copySourcePath = moduleFileName ? path.resolve(srcDir, moduleFileName): srcDir;
-  const copySourceVbe = moduleFileName ? path.resolve(tempDir, moduleFileName) : tempDir;
+  const copySourceVbe = moduleFileName ? path.resolve(vbeDir, moduleFileName) : vbeDir;
   const copySourceBase = moduleFileName ? path.resolve(baseDir, moduleFileName) :baseDir;
 
   // copy src and base
   try {
-    moduleFileName === '' && deleteModulesInSrc(srcDir, true);
+    moduleFileName === STRING_EMPTY && deleteModulesInFolder(srcDir, true);
     await fse.copy(copySourceVbe, copySourcePath);
-    moduleFileName === '' && deleteModulesInSrc(baseDir, true);
+    moduleFileName === STRING_EMPTY && deleteModulesInFolder(baseDir, true);
     await fse.copy(copySourceVbe, copySourceBase);
+
+    await common.rmFileIfExist(path.resolve(srcDir, moduleFileName + EXT_BASE), {});
+    await common.rmFileIfExist(path.resolve(srcDir, moduleFileName + EXT_VBE), {});
   }
   catch (e) {
     throw(e);
   }
-  finally{
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
-  }
   return true;
 };
 
-/**
- * 
- * @param bookPath 
- * @param modulePath 
- * @param testConfirm   baseFile vs srcFile
- * @returns 
- */
- export async function fetchModule(bookPath: string, modulePath:string, testConfirm? :TestConfirm) : Promise<boolean| undefined> {
-  // if the file does not exist, return ''
+
+/* export async function pullModule(bookPath: string, modulePath:string, testConfirm? :TestConfirm) : Promise<boolean| undefined> {
+  // if the file does not exist, return STRING_EMPTY
   if (!fileExists(bookPath)) {
     throw(Error(`Excel file does not exist to update src.: ${modulePath}`));
   }
 
-
   //module in source is modified?
-  const {srcDir, baseDir, tempDir} = getVbecmDirs(bookPath,'fetchModule');
+  const {srcDir, baseDir, vbeDir} = getVbecmDirs(bookPath,'pullModule');
   const moduleBase = path.basename(modulePath);
   const doTest = testConfirm !== undefined;
-  const goNext = !doTest || await testConfirm(path.resolve(baseDir, moduleBase), path.resolve(srcDir, moduleBase), path.resolve(tempDir, moduleBase), 'src');
+  const goNext = !doTest || await testConfirm(path.resolve(baseDir, moduleBase), path.resolve(srcDir, moduleBase), path.resolve(vbeDir, moduleBase), 'src');
   if (goNext === false){
-    await rmDirIfExist(tempDir, { recursive: true, force: true });
     return;
   }
 
   // export and copy
   try{
-    await exportModuleAsync(bookPath, tempDir, ''); 
-    await fse.copy(path.resolve(tempDir, moduleBase), path.resolve(srcDir, moduleBase));
-    await fse.copy(path.resolve(tempDir, moduleBase), path.resolve(baseDir, moduleBase));
+    await exportModuleAsync(bookPath, vbeDir, moduleBase); 
+    await fse.copy(path.resolve(vbeDir, moduleBase), path.resolve(srcDir, moduleBase));
+    await fse.copy(path.resolve(vbeDir, moduleBase), path.resolve(baseDir, moduleBase));
+    await common.rmFileIfExist(path.resolve(srcDir, moduleBase + EXT_BASE), {});
+    await common.rmFileIfExist(path.resolve(srcDir, moduleBase + EXT_VBE), {});
   }
   catch(e)
   {
     throw(e);
   }
-  finally
-  {
-    await rmDirIfExist(tempDir, { recursive: true, force: true });
-  }
   return true;
-}
+} */
 
 
-/**
- * 
- * @param pathBook 
- * @param testConfirm tempDir vb baseDire
- * @returns 
- */
-export async function importModules(pathBook: string, testConfirm?:TestConfirm) :Promise<boolean|undefined> {
+export async function importModules(pathBook: string, modulePathOrFile: string, testConfirm?:TestConfirm) :Promise<boolean|undefined> {
 
-  const { bookPath, srcDir, baseDir, tempDir } = getVbecmDirs(pathBook,'importModules');
+  const { bookPath, srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook,'importModules');
+
+  const moduleFileName = path.basename(modulePathOrFile);
 
   const isSrcExist = await common.dirExists(srcDir);
   if (!isSrcExist) {
@@ -151,48 +134,61 @@ export async function importModules(pathBook: string, testConfirm?:TestConfirm) 
     throw(new Error (`Excel file does not exist: ${bookPath}`));
   }
 
-  // export to uuid folder, for check modified
+  // export to vbe folder, if module in vbe is modified.  vbe vs. base
   try{
-    await exportModuleAsync(pathBook, tempDir, '');
+    await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY);
   }
   catch(e)
   {
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
     throw(e);
   }
 
-  // check tempDir and srcDir
+  // check vbeDir and srcDir
   const existBase = await  dirExists(baseDir);
   const isDefinedTestFunc = !!testConfirm;
-  const isConfirm = existBase && isDefinedTestFunc && await testConfirm(baseDir, srcDir, tempDir, 'vbe');
+  const isConfirm = existBase && isDefinedTestFunc && await testConfirm(baseDir, srcDir, vbeDir, 'vbe');
   const isGoForward = !isDefinedTestFunc || !existBase || isConfirm;
-  await rmDirIfExist(tempDir, { recursive: true, force: true });
   if (isGoForward === false){
     return;
   }
   
   // import main
+  let successImport = false;
   try {
     // this is import
-    // now not verify import
-    await importModuleSync(pathBook);
-    // do import and export, vbe does format file(case and whitespace)
-    // so synchronize after import
-    await exportModulesToScrAndBase(pathBook);
+    await importModuleSync(pathBook, moduleFileName);
+    successImport = true;
+  }
+  catch (e) {
+    successImport = false;
+    vscode.window.showWarningMessage('import error. now try to recover.');
+  }
+
+  // import recovery
+  try {
+    if (!successImport){
+      await importModuleSync(pathBook, STRING_EMPTY, true);
+      // for recovery not update modules, so return 
+      vscode.window.showWarningMessage('Success recover!!');
+      return false;
+    }
+  }
+  catch (e) {
+    vscode.window.showErrorMessage('Fail recover!!');
+    throw(e);
+  }
+
+  try {
+    // synchronize vbe to src_dir
+      await exportModulesForUpdate(pathBook, moduleFileName);
   }
   catch (e) {
     throw(e);
   }
   return true;
 }
-/**
- * 
- * @param bookPath 
- * @param modulePath 
- * @param testConfirm vbe module vs base module
- * @returns 
- */
- export async function commitModule(bookPath: string, modulePath:string, testConfirm?:TestConfirm) : Promise<boolean| undefined> {
+
+/* export async function commitModule(bookPath: string, modulePath:string, testConfirm?:TestConfirm) : Promise<boolean| undefined> {
   // dose book exist
   if (!fileExists(bookPath)) {
     throw(Error(`Excel file does not exist to commit.: ${modulePath}`));
@@ -200,21 +196,19 @@ export async function importModules(pathBook: string, testConfirm?:TestConfirm) 
 
   // module in excel modified?
   // so export module(s)
-  const {srcDir, baseDir, tempDir} = getVbecmDirs(bookPath, 'commitModule');
+  const {srcDir, baseDir, vbeDir} = getVbecmDirs(bookPath, 'commitModule');
   try{
-    await exportModuleAsync(bookPath, tempDir, modulePath);
+    await exportModuleAsync(bookPath, vbeDir, modulePath);
   }
   catch(e)
   {
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
     throw(e);
   }
 
   // really import(commit)?
   const moduleFileName = path.basename(modulePath);
   const doTest = testConfirm !== undefined;
-  const goNext = !doTest || await testConfirm(path.resolve(baseDir, moduleFileName), '', path.resolve(tempDir, moduleFileName), 'vbe');
-  await rmDirIfExist(tempDir, { recursive: true, force: true });
+  const goNext = !doTest || await testConfirm(path.resolve(baseDir, moduleFileName), STRING_EMPTY, path.resolve(vbeDir, moduleFileName), 'vbe');
   if (goNext === false){
     return;
   }
@@ -223,28 +217,26 @@ export async function importModules(pathBook: string, testConfirm?:TestConfirm) 
   try {
     // now not verify import
     await importModuleSync(bookPath, modulePath);
-    await exportModulesToScrAndBase(bookPath, moduleFileName);  
+    await exportModulesForUpdate(bookPath, moduleFileName);  
   } catch (error) {
     throw(error);
   }
   return true;
-}
+} */
 
 export async function exportFrxModules(pathBook: string){
-
   if (!fileExists(pathBook)){
     throw(Error(`Excel file does not exist.: ${pathBook}`));
   }
 
-  const {srcDir, baseDir, tempDir} = getVbecmDirs(pathBook,'exportFrxModules');
+  const {srcDir, baseDir, vbeDir, tempDir} = getVbecmDirs(pathBook,'exportFrxModules');
 
   // export to uuid folder
   try{
-    await exportModuleAsync(pathBook, tempDir, '');
+    await exportModuleAsync(pathBook, tempDir, STRING_EMPTY);
   }
-  catch(e)
-  {
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
+  catch(e) {
+    await common.rmDirIfExist(tempDir, { recursive: true, force: true });
     throw(e);
   }
 
@@ -252,12 +244,11 @@ export async function exportFrxModules(pathBook: string){
   const targetFileNames = fileNameList.filter(RegExp.prototype.test, /.*\.frx$/i);
 
   targetFileNames.forEach(fileName => {
-    fse.copyFileSync(path.resolve(tempDir,fileName),path.resolve(srcDir,fileName));
-    fse.copyFileSync(path.resolve(tempDir,fileName),path.resolve(baseDir,fileName));
-    // tar.baseToTar(baseDir, false);
+    fse.copyFileSync(path.resolve(tempDir, fileName),path.resolve(srcDir, fileName));
+    fse.copyFileSync(path.resolve(tempDir, fileName),path.resolve(vbeDir, fileName));
+    fse.copyFileSync(path.resolve(tempDir, fileName),path.resolve(baseDir, fileName));
   });
-
-  await rmDirIfExist(tempDir, { recursive: true, force: true });
+  await common.rmDirIfExist(tempDir, { recursive: true, force: true });
 }
 
 export async function vbaSubRun(bookPath: string, modulePath: string, funcName: string) {
@@ -311,7 +302,7 @@ export function closeBook(bookPath: string){
 
 export async function comparePathAndGo(base: string, src: string, vbe: string, diffTo: 'src'|'vbe', confirmMessage: string, moduleFilePaths?: string[]) {
   
-  const moduleFileName = moduleFilePaths ? path.basename(moduleFilePaths[0]) : '';
+  const moduleFileName = moduleFilePaths ? path.basename(moduleFilePaths[0]) : STRING_EMPTY;
   const pathToCompare = (pPath: string) => moduleFileName ? path.resolve(pPath, moduleFileName) : pPath;
 
   const basePath =pathToCompare(base);
@@ -321,8 +312,8 @@ export async function comparePathAndGo(base: string, src: string, vbe: string, d
   const r = comparePath(basePath, diffTo ==='vbe' ? vbePath : srcPath);
 
   if (r.differences > 0) {
-    outputDiffResult(r, diffTo);
-    await outputDiffFile(r, basePath, srcPath, vbePath);
+    logToOutputTab(r, diffTo);
+    await saveDiffFiles(r, basePath, srcPath, vbePath);
     const ans = await vscode.window.showInformationMessage(confirmMessage, 'Yes', 'No');
     vbeOutput.clear();
     return ans;
@@ -331,16 +322,16 @@ export async function comparePathAndGo(base: string, src: string, vbe: string, d
 }
 
 
-function outputDiffResult(r: dirCompare.Result, diffTitle: string){
+function logToOutputTab(r: dirCompare.Result, diffTitle: string, doClear : boolean = true){
   const result = r.diffSet!.filter(_ => _.state !== 'equal').map(_ => {
-    return (_.name1 || _.name2 || '') + ' : ' + _.reason;
+    return (_.name1 || _.name2 || STRING_EMPTY) + ' : ' + _.reason;
   });
-  vbeOutput.clear();
+  doClear && vbeOutput.clear();
   vbeOutput.appendLine(`======== base - ${diffTitle} ===========>`);
-  vbeOutput.appendLine(result.join('\n') || '');
+  vbeOutput.appendLine(result.join('\n') || STRING_EMPTY);
 }
 
-async function outputDiffFile(r: dirCompare.Result, base: string, src: string, vbe: string){
+async function saveDiffFiles(r: dirCompare.Result, base: string, src: string, vbe: string){
   const isDir = await common.dirExists(src);
 
   const dirSrc = isDir ? src : path.dirname(src);
@@ -349,11 +340,11 @@ async function outputDiffFile(r: dirCompare.Result, base: string, src: string, v
 
   for (const diff of r.diffSet!){
     if(diff.state !== 'equal'){
-      const fileName = (diff.name1 && diff.name2) ? diff.name1 : '';
+      const fileName = (diff.name1 && diff.name2) ? diff.name1 : STRING_EMPTY;
       const baseFile = path.resolve(dirBase, fileName);
       const vbeFile = path.resolve(dirVbe, fileName);
-      await common.fileExists(baseFile) && fse.copyFileSync(baseFile, path.resolve(dirSrc, fileName + '.base'));
-      await common.fileExists(vbeFile) && fse.copyFileSync(vbeFile, path.resolve(dirSrc, fileName + '.vbe'));
+      await common.fileExists(baseFile) && fse.copyFileSync(baseFile, path.resolve(dirSrc, fileName + EXT_BASE));
+      await common.fileExists(vbeFile) && fse.copyFileSync(vbeFile, path.resolve(dirSrc, fileName + EXT_VBE));
     }
   }
 }
@@ -367,7 +358,7 @@ export function comparePath(path1: string, path2: string){
     //compareFileAsync: dirCompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
     skipSubdirs: true,
     includeFilter:'*.cls,*.bas,*.frm',
-    excludeFilter: '**/*.frx,.base,.current,.git,.gitignore',
+    excludeFilter: `**/*.frx,.git,.gitignore, ${FOLDER_BASE}, ${FOLDER_VBE}`,
     ignoreAllWhiteSpaces: true,
     ignoreEmptyLines: true,
     ignoreCase: true
@@ -378,7 +369,7 @@ export function comparePath(path1: string, path2: string){
   return r;
 }
 
-export async function deleteModulesInSrc(pathSrc: string, isDiffFile: boolean = false){
+export async function deleteModulesInFolder(pathSrc: string, isDiffFile: boolean = false){
   try {
 
     const isExist = await common.dirExists(pathSrc);
@@ -390,7 +381,7 @@ export async function deleteModulesInSrc(pathSrc: string, isDiffFile: boolean = 
 
     const files = fse.readdirSync(pathSrc);
 
-    const extensions = isDiffFile ? ['.bas','.frm','.cls', '.frx', '.base', '.vbe'] : ['.bas','.frm','.cls', '.frx'];
+    const extensions = isDiffFile ? ['.bas', '.frm', '.cls', '.frx', EXT_BASE, EXT_VBE] : ['.bas', '.frm', '.cls', '.frx'];
     
     // delete only vba module file
     const moduleList = files.forEach((file) => {
@@ -404,6 +395,20 @@ export async function deleteModulesInSrc(pathSrc: string, isDiffFile: boolean = 
   } catch (error) {
     throw(error);
   }
+}
+
+
+export async function compareModules(pathBook: string){
+  const {srcDir, baseDir, vbeDir} = getVbecmDirs(pathBook, 'compareModules');
+
+  await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY); 
+
+  const r = comparePath(baseDir, srcDir);
+  logToOutputTab(r, 'src');
+
+  const r2 = comparePath(baseDir, vbeDir);
+  logToOutputTab(r2, 'vbe', false);
+
 }
 
 export async function getModulesCountInFolder(pathSrc: string){
@@ -426,20 +431,22 @@ export async function getModulesCountInFolder(pathSrc: string){
   }
 }
 
-async function exportModuleAsync(bookPath: string, pathToExport: string, moduleFileName: string) {
+async function exportModuleAsync(bookPath: string, pathToExport: string, moduleFileNameOrPath: string) {
   // export modules
   const isSheet =  'True';
   const isForm = 'True';
 
-  const moduleFileNameFix = path.basename(moduleFileName);
-  // export
-  const { err, status } = runVbs('export.vbs', [bookPath, pathToExport, moduleFileNameFix, isSheet, isForm]);
+  // delete file then export
+  const moduleFileName = path.basename(moduleFileNameOrPath);
+  moduleFileName === STRING_EMPTY && await deleteModulesInFolder(pathToExport, true);
+  const { err, status } = runVbs('export.vbs', [bookPath, pathToExport, moduleFileName, isSheet, isForm]);
   if (status !== 0 || err) {
     const error = new Error(err);
     throw (error);
   }
 
-  if (moduleFileNameFix === ''){
+  // verify all modules
+  if (moduleFileName === STRING_EMPTY){
     // modules in book
     const moduleCountInBook = getFilesCountToExport(bookPath);
     // modules in exported folder
@@ -452,37 +459,46 @@ async function exportModuleAsync(bookPath: string, pathToExport: string, moduleF
     return;
   }
 
-  if (! await common.fileExists(path.resolve(pathToExport, moduleFileNameFix))){
-    throw (Error(`${moduleFileNameFix} is not exported.`)); 
+  // verify when moduleFileName defined
+  if (! await common.fileExists(path.resolve(pathToExport, moduleFileName))){
+    throw (Error(`${moduleFileName} is not exported.`)); 
   }
 }
 
 
-async function importModuleSync(pathBook: string, modulePath: string = '') {
+async function importModuleSync(pathBook: string, modulePath: string = STRING_EMPTY, isRecovery: boolean = false) {
+
+  // get folders
+  const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'importModule');
+
+  const importDirFrom = isRecovery ? vbeDir : srcDir;
 
   // do import
-  const { err, status } = runVbs('import.vbs', [pathBook, modulePath]);
+  const { err, status } = runVbs('import.vbs', [pathBook, modulePath, importDirFrom]);
   if (status !== 0 || err) {
     const error = Error(err);
     throw (error);
   }
 
+  if (isRecovery){
+    // do not verify
+    return;
+  }
+
   //  verify src and exported(once imported)
   //  comparePath does not work with ignore case.
-  const { srcDir, baseDir, tempDir } = getVbecmDirs(pathBook, 'importModule');
-
   // compare dir or file ?
   const moduleFileName = path.basename(modulePath);
   const srcPath = modulePath ? path.resolve(srcDir, moduleFileName) : srcDir;
-  const vbePath = modulePath ? path.resolve(tempDir, moduleFileName) : tempDir;
+  const vbePath = modulePath ? path.resolve(vbeDir, moduleFileName) : vbeDir;
 
   try {
-    await exportModuleAsync(pathBook, tempDir, moduleFileName);
+    await exportModuleAsync(pathBook, vbeDir, moduleFileName);
 
     const r = comparePath(srcPath, vbePath);
     if (r.same === false){
-      outputDiffResult(r, 'src, vbe');
-      await outputDiffFile(r, baseDir, srcDir, tempDir);
+      logToOutputTab(r, 'src, vbe');
+      await saveDiffFiles(r, baseDir, srcDir, vbeDir);
       vscode.window.showWarningMessage('May be Ok, some files are format in VBE engine. Case or Space.');
       //throw(Error('Import verify Error.'));
     }
@@ -490,18 +506,11 @@ async function importModuleSync(pathBook: string, modulePath: string = '') {
     console.log(error);
     throw(error);
   }
-  finally{
-    await rmDirIfExist(tempDir, { recursive: true, force: true }); 
-  }
 }
 
 
 type RunVbs = {err: string, out: string, retValue: string, status: number | boolean| null};
-/**
- * 
- * @param param vbs, ...params
- * @returns messages
- */
+
 function runVbs(script: string, param: string[]) {
   try {
     const scriptPath = path.resolve(getVbsPath(), script);
@@ -521,7 +530,7 @@ function runVbs(script: string, param: string[]) {
   }
   catch (e: unknown) {
     const errMessage = (e instanceof Error) ? e.message : 'vbs run error.';
-    return { err: errMessage, out: '', retValue: '', status: 10 };
+    return { err: errMessage, out: STRING_EMPTY, retValue: STRING_EMPTY, status: 10 };
   }
 }
 
@@ -539,19 +548,6 @@ function getVbsPath(){
   return vbsPath;
 }
 
-
-export async function rmDirIfExist(pathFolder: string, option: {}){
-  try {
-
-    const isExist = await common.dirExists(pathFolder);
-    if (!isExist)
-    {
-      // no folder no delete
-      return;
-    }
-    await fse.promises.rm(pathFolder, option);
-  } catch (error) {
-    throw(error);
-  }
+async function deleteModuleFolderIfExist(moduleFolder: string){
+  await common.rmDirIfExist(moduleFolder, { recursive: true, force: true });
 }
-

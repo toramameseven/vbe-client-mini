@@ -13,25 +13,26 @@ projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFull
 Dim bookPath
 '' if modulePath is empty, import all modules
 Dim modulePath
+Dim moduleFolderPath
 Dim isUseFromModule
 Dim isUseSheetModule
 modulePath = ""
 isUseFromModule = True
 isUseSheetModule = True
-If WScript.Arguments.Count = 2 Then
+If WScript.Arguments.Count = 3 Then
     bookPath = WScript.Arguments(0)
     '' module path include xxxx.sht.cls
     modulePath = WScript.Arguments(1)
+    moduleFolderPath = WScript.Arguments(2)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
     modulePath = "C:\projects\toramame-hub\vbe-client-mini\xlsms\src_macrotest.xlsm\Module2.bas"
 End If
 
-
-'' get modules folder
-Dim moduleFolderPath
-moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
+if moduleFolderPath = "" Then
+  moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
+End If
 
 IF fso.FolderExists(moduleFolderPath) = False Then
     WScript.StdErr.WriteLine ("No src Folder: " & moduleFolderPath)
