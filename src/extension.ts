@@ -88,11 +88,14 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommit);
   
-  
-  //
-  const fileDiffProvider = new FileDiffProvider(['aaaa','bbbb']);
+  const fileDiffProvider = new FileDiffProvider(['aaaa','bbbb'], 'src');
 	vscode.window.registerTreeDataProvider('vbeDiff', fileDiffProvider);
 
+  const commandDiffRefresh = vscode.commands.registerCommand('vbeDiff.refreshEntry', () => fileDiffProvider.refresh());
+  context.subscriptions.push(commandDiffRefresh);
+
+  
+  //
 
   // //when open file check japanese encode
 	// vscode.workspace.onDidOpenTextDocument(function(e){

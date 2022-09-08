@@ -23,7 +23,8 @@
 		"workspaceContains:**/*.xlam",
 		"workspaceContains:**/*.cls",
 		"workspaceContains:**/*.bas",
-		"workspaceContains:**/*.frm"
+		"workspaceContains:**/*.frm",
+    "onView:vbeDiff"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -71,6 +72,14 @@
       {
 				"command": "command.modified",
 				"title": "check modified"
+			},
+      {
+				"command": "vbeDiff.refreshEntry",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
 			}
 		],
 		"menus": {
@@ -106,6 +115,13 @@
 					"group": "myGroup@6"
 				}
 			],
+      "view/title": [
+				{
+					"command": "vbeDiff.refreshEntry",
+					"when": "view == vbeDiff",
+					"group": "navigation"
+				}
+      ],
 			"editor/context": [
 				{
 					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",

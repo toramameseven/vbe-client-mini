@@ -3,15 +3,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export class FileDiffProvider implements vscode.TreeDataProvider<FileDiff> {
+  refresh(): any {
+    this._onDidChangeTreeData.fire();
+  }
 
 	private _onDidChangeTreeData: vscode.EventEmitter<FileDiff | undefined | void> = new vscode.EventEmitter<FileDiff | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<FileDiff | undefined | void> = this._onDidChangeTreeData.event;
 
-	constructor(private files: string[] | undefined) {
-	}
-
-	refresh(): void {
-		this._onDidChangeTreeData.fire();
+	constructor(private files: string[] | undefined, private title: string) {
 	}
 
 	getTreeItem(element: FileDiff): vscode.TreeItem {
@@ -19,8 +18,9 @@ export class FileDiffProvider implements vscode.TreeDataProvider<FileDiff> {
 	}
 
 	getChildren(element?: FileDiff): Thenable<FileDiff[]> {
-    if (!this.files) {
-      Promise.resolve([]);
+
+    if (!element){
+      return Promise.resolve([this.title].map(_ => new FileDiff(_, vscode.TreeItemCollapsibleState.Collapsed )));
     }
     return Promise.resolve(this.files!.map(_ => new FileDiff(_, vscode.TreeItemCollapsibleState.None )));
 	}
