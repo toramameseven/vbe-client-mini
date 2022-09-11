@@ -24,34 +24,42 @@
 		"workspaceContains:**/*.cls",
 		"workspaceContains:**/*.bas",
 		"workspaceContains:**/*.frm",
-    "onView:vbeDiff"
+    "onView:vbeDiffView"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
     "views": {
       "explorer": [
         {
-          "id": "vbeDiff",
+          "id": "vbeDiffView",
           "name": "Vbe Diff"
         }
       ]
     },
 		"commands": [
 			{
-				"command": "command.export",
+				"command": "explorer.export",
 				"title": "Export all VBA modules"
 			},
 			{
-				"command": "command.import",
+				"command": "explorer.import",
 				"title": "Import all VBA modules"
 			},
 			{
-				"command": "command.compile",
+				"command": "explorer.compile",
 				"title": "Compile VBA"
 			},
 			{
-				"command": "command.exportfrx",
+				"command": "explorer.exportFrx",
 				"title": "Export only frx modules"
+			},
+      {
+				"command": "explorer.commit-all",
+				"title": "Push All Vba modules"
+			},
+      {
+				"command": "explorer.testModified",
+				"title": "check modified"
 			},
 			{
 				"command": "editor.run",
@@ -65,62 +73,87 @@
 				"command": "editor.checkout",
 				"title": "Pull VBA module"
 			},
-			{
-				"command": "command.commit-all",
-				"title": "Push All Vba modules"
-			},
       {
-				"command": "command.modified",
-				"title": "check modified"
-			},
-      {
-				"command": "vbeDiff.refreshEntry",
+				"command": "vbeDiffView.refreshEntry",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
+			},
+      {
+				"command": "vbeDiffView.collapseAll",
+				"title": "collapse All",
+				"icon": "$(collapse-all)"
+			},
+      {
+				"command": "vbeDiffView.diffVbeSrc",
+				"title": "Diff vbe to src"
+			},
+      {
+				"command": "vbeDiffView.pushSrc",
+				"title": "Push"
+			},
+      {
+				"command": "vbeDiffView.resolveVbe",
+				"title": "Resolve vbe"
 			}
 		],
 		"menus": {
 			"explorer/context": [
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "command.export",
+					"command": "explorer.export",
 					"group": "myGroup@1"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "command.import",
+					"command": "explorer.import",
 					"group": "myGroup@2"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "command.compile",
+					"command": "explorer.compile",
 					"group": "myGroup@3"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
-					"command": "command.exportfrx",
+					"command": "explorer.exportFrx",
 					"group": "myGroup@4"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "command.commit-all",
+					"command": "explorer.commit-all",
 					"group": "myGroup@5"
 				},
         {
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "command.modified",
+					"command": "explorer.testModified",
 					"group": "myGroup@6"
 				}
 			],
       "view/title": [
 				{
-					"command": "vbeDiff.refreshEntry",
-					"when": "view == vbeDiff",
-					"group": "navigation"
+					"command": "vbeDiffView.refreshEntry",
+					"when": "view == vbeDiffView",
+					"group": "navigation@1"
+				},
+        {
+					"command": "vbeDiffView.collapseAll",
+					"when": "view == vbeDiffView",
+					"group": "navigation@2"
 				}
+      ],
+      "view/item/context": [
+        {
+          "command": "vbeDiffView.diffVbeSrc",
+          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+        },
+        {
+          "command": "vbeDiffView.pushSrc",
+          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc"
+        },
+        {
+          "command": "vbeDiffView.resolveVbe",
+          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+        }
       ],
 			"editor/context": [
 				{

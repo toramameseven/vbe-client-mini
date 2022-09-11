@@ -1,6 +1,7 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
-
+import * as vscode from 'vscode';
+import * as stBar from './statusBar';
 
 export async function fileExists(filepath: string) {
   try {
@@ -22,9 +23,10 @@ export async function dirExists(filepath: string) {
 }
 
 
-export function myLog(message: string, title: string = '(_empty_)')
+export function myLog(message: string, title: string = '(_empty_)', isOut: boolean = false)
 {
-  //console.log(`vbecm: ${title}: ${message}`);
+  if (!isOut) {return;}
+  console.log(`vbecm-ts: ${title}: ${message}`);
 }
 
 
@@ -56,6 +58,11 @@ export async function rmFileIfExist(pathFile: string, option: {}){
   } catch (error) {
     throw(error);
   }
+}
+
+export function displayMenus(isOn: boolean = true) {
+  vscode.commands.executeCommand('setContext', 'vbecm.showVbsCommand', isOn);
+  stBar.updateStatusBarItem(!isOn);
 }
 
 

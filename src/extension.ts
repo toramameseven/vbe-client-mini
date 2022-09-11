@@ -8,7 +8,7 @@ import { vbeOutput } from './vbeOutput';
 import * as handler from './handlers';
 import * as fse from 'fs-extra';
 import * as encoding from 'encoding-japanese';
-import { FileDiff, FileDiffProvider } from './diffFiles';
+import { fileDiffProvider } from './diffFiles';
 
 
 // this method is called when your extension is activated
@@ -27,41 +27,41 @@ export function activate(context: vscode.ExtensionContext) {
   //   --------------explorer
   // export
   const commandExport = vscode.commands.registerCommand(
-    'command.export', 
+    'explorer.export', 
     handler.handlerExportModules
   );
   context.subscriptions.push(commandExport);
 
   // import
   const commandImport = vscode.commands.registerCommand(
-    'command.import', 
+    'explorer.import', 
     handler.handlerImportModules
   );
   context.subscriptions.push(commandImport);
 
   // compile
   const commandCompile = vscode.commands.registerCommand(
-    'command.compile', 
+    'explorer.compile', 
     handler.handlerCompile
   );
   context.subscriptions.push(commandCompile);
 
   // export frx
   const commandExportFrx = vscode.commands.registerCommand(
-    'command.exportfrx', 
+    'explorer.exportFrx', 
     handler.handlerUpdateFrxModules
   );
   context.subscriptions.push(commandExportFrx);
 
   // commit all module from folder
   const commandCommitAll = vscode.commands.registerCommand(
-    'command.commit-all', 
+    'explorer.commit-all', 
     handler.handlerCommitAllModule
   );
   context.subscriptions.push(commandCommitAll);
 
   const commandModified = vscode.commands.registerCommand(
-    'command.modified', 
+    'explorer.testModified', 
     handler.handlerCheckModified
   );
   context.subscriptions.push(commandCommitAll);
@@ -88,52 +88,19 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommit);
   
-  const fileDiffProvider = new FileDiffProvider(['aaaa','bbbb'], 'src');
-	vscode.window.registerTreeDataProvider('vbeDiff', fileDiffProvider);
+	vscode.window.registerTreeDataProvider('vbeDiffView', fileDiffProvider);
 
-  const commandDiffRefresh = vscode.commands.registerCommand('vbeDiff.refreshEntry', () => fileDiffProvider.refresh());
+  const commandDiffRefresh = vscode.commands.registerCommand('vbeDiffView.refreshEntry', () => fileDiffProvider.updateModification());
   context.subscriptions.push(commandDiffRefresh);
 
+  vscode.commands.registerCommand('vbeDiffView.collapseAll', handler.collapseAllVbeDiffView);
+  vscode.commands.registerCommand('vbeDiffView.pushSrc', (info) => handler.handlerCommitModuleFromVbeDiff(info));
+  vscode.commands.registerCommand('vbeDiffView.resolveVbe', (info) => handler.handlerResolveVbeConflicting(info));
+
+  vscode.commands.registerCommand('vbeDiffView.diff', (resource) => handler.handlerDiffBaseTo(resource));
+  vscode.commands.registerCommand('vbeDiffView.diffVbeSrc', (resource) => handler.handlerDiffSrcToVbe(resource));
   
-  //
-
-  // //when open file check japanese encode
-	// vscode.workspace.onDidOpenTextDocument(function(e){
-	// 	const fname = e.fileName.replace(/\\/g,'/');
-	// 	if (fname.indexOf('/.vscode') > -1){
-	// 		return;
-	// 	}
-
-	// 	//workspaceデフォルトのエンコードを取得
-	// 	const  defaultEncode = vscode.workspace.getConfiguration().get('files.encoding');// utf8 shiftjis eucjp
-
-  //   //vscode.window.activeTextEditor?.document.
-
-
-	// 	//元ファイルを開いてエンコードを調べる
-	// 	fse.readFile(fname, function (err, textx) {
-  //     const text = e.getText();
-	// 		if (text.length === 0){
-	// 			return;
-	// 		}
-	// 		const sourceEncode = encoding.detect(text);// UTF8 SJIS EUCJP ASCII
-	// 		if (!sourceEncode){
-	// 			return;
-	// 		}
-
-	// 		const sourceEncodeLowerCase = sourceEncode.toLowerCase() === 'sjis' ? 'shiftjis': sourceEncode.toLowerCase();
-
-	// 		let mes = STRING_EMPTY;
-	// 		if (sourceEncodeLowerCase !== defaultEncode && sourceEncodeLowerCase !== 'ascii'){
-	// 			mes = 'encoding not match!! reopen with [' + sourceEncode + '] ' + fname;
-	// 			vscode.window.showWarningMessage(mes);
-	// 		}else{
-	// 			mes = 'encoding match with workspace default(' + defaultEncode + '). [' + sourceEncode + '] ' + e.fileName;
-	// 			vscode.window.setStatusBarMessage(mes,5000);
-	// 		}
-	// 	});
-	// });	
-
+  
   
   displayMenus(true);
   // update status bar item once at start

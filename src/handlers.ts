@@ -5,6 +5,7 @@ import * as stBar from './statusBar';
 import * as vbs from './vbsModule';
 import * as common from './common';
 import { rawListeners } from 'process';
+import { DiffFileInfo, FileDiff } from './diffFiles';
 
 const STRING_EMPTY = '';
 
@@ -13,7 +14,7 @@ const testAndConfirm =
   (message : string) => 
   async (baseDir: string, srcDir: string, targetDir: string, compareTo : 'src' |'vbe') => {
     const ans = await vbs.comparePathAndGo(baseDir, srcDir, targetDir, compareTo, message);
-    return ans === 'Yes' ? true: false;
+    return ans;
   };
 
 export async function handlerExportModules(uriBook: vscode.Uri){
@@ -26,6 +27,8 @@ export async function handlerExportModules(uriBook: vscode.Uri){
   try{
     const r = await vbs.exportModulesForUpdate(uriBook.fsPath, STRING_EMPTY, diffTestAndConfirm);
     r && showInformationMessage('Success export modules.');
+
+    await vbs.updateModification();
   }
   catch(e)
   {
@@ -56,6 +59,8 @@ export async function handlerUpdateAsync(uriModule: vscode.Uri) {
   try {
     const r = await vbs.exportModulesForUpdate(bookPath, modulePath, diffTestAndConfirm);
     r && showInformationMessage('Success pull.');
+
+    await vbs.updateModification();
   } catch (e) {
     showErrorMessage('Error pull.');
     showErrorMessage(e);
@@ -76,6 +81,8 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
     const r = await vbs.importModules(uriBook.fsPath, STRING_EMPTY, diffTestAndConfirm);
     r &&  showInformationMessage('Success import modules.');
 
+    await vbs.updateModification();
+
   } catch (e) {
     showErrorMessage('Error import modules.');
     showErrorMessage(e);
@@ -95,6 +102,8 @@ export async function handlerCommitAllModule(uriFolder: vscode.Uri) {
   try {
     const r = await vbs.importModules(bookPath, STRING_EMPTY, diffTestAndConfirm);
     r && showInformationMessage('Success push all.');
+
+    await vbs.updateModification();
   } catch (e) {
     showErrorMessage('Error push all.');
     showErrorMessage(e);
@@ -119,6 +128,8 @@ export async function handlerCommitModule(uriModule: vscode.Uri) {
   try {
     const r = await vbs.importModules(bookPath, modulePath, diffTestAndConfirm);
     r && showInformationMessage('Success push.');
+
+    await vbs.updateModification();
   } catch (e) {
     showErrorMessage('Error push.');
     showErrorMessage(e);
@@ -126,6 +137,10 @@ export async function handlerCommitModule(uriModule: vscode.Uri) {
   finally {
     displayMenus(true);
   }
+}
+
+export async function handlerCommitModuleFromVbeDiff(fileInfo: DiffFileInfo) {
+  await handlerCommitModule(vscode.Uri.file(fileInfo.compareFilePath!));
 }
 
 
@@ -185,16 +200,34 @@ export async function handlerVbaRun(textEditor: TextEditor, edit: vscode.TextEdi
   }
 }
 
- export async function handlerCheckModified(uriFolder: vscode.Uri)
+export async function handlerCheckModified(uriFolder: vscode.Uri)
 {
   const bookPath = await getExcelPathSrcFolder(uriFolder);
-  vbs.compareModules(bookPath);
+  await vbs.updateModification(uriFolder);
 }
 
+export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo){
+  // get book path from a modules in vbe folder.
+  const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
+  await vbs.resolveVbeConflicting(bookPath, fileInfo.moduleName!);
+}
 
 export function displayMenus(isOn: boolean = true) {
   vscode.commands.executeCommand('setContext', 'vbecm.showVbsCommand', isOn);
   stBar.updateStatusBarItem(!isOn);
+}
+
+export async function collapseAllVbeDiffView(){
+  await vscode.commands.executeCommand('workbench.actions.treeView.vbeDiffView.collapseAll');
+}
+
+export async function handlerDiffBaseTo(resource: DiffFileInfo): Promise<void>{
+  await vbs.diffBaseTo(resource);
+}
+
+export async function handlerDiffSrcToVbe(resource: DiffFileInfo): Promise<void>{
+  const pathBook = await getExcelPathFromVbeModule(vscode.Uri.file(resource.compareFilePath!));
+  await vbs.diffSrcToVbe(resource, pathBook);
 }
 
 function showInformationMessage(message: string) {
@@ -217,6 +250,12 @@ function getHourMinute(){
 
 async function getExcelPathFromModule(uri: vscode.Uri) {
   const dirParent = path.dirname(uri.fsPath);
+  const r = await getExcelPathSrcFolder(vscode.Uri.file(dirParent));
+  return r;
+}
+
+async function getExcelPathFromVbeModule(uri: vscode.Uri) {
+  const dirParent = path.dirname(path.dirname(uri.fsPath));
   const r = await getExcelPathSrcFolder(vscode.Uri.file(dirParent));
   return r;
 }

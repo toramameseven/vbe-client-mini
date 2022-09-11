@@ -8,6 +8,7 @@ import {spawnSync} from 'child_process';
 import dirCompare = require('dir-compare');
 import { dirExists, fileExists } from './common';
 import * as common from './common';
+import {DiffFileInfo, fileDiffProvider } from './diffFiles';
 
 export const FOLDER_VBS = 'vbs';
 export const FOLDER_PREFIX_SRC = 'src_';
@@ -312,13 +313,15 @@ export async function comparePathAndGo(base: string, src: string, vbe: string, d
   const r = comparePath(basePath, diffTo ==='vbe' ? vbePath : srcPath);
 
   if (r.differences > 0) {
-    logToOutputTab(r, diffTo);
-    await saveDiffFiles(r, basePath, srcPath, vbePath);
-    const ans = await vscode.window.showInformationMessage(confirmMessage, 'Yes', 'No');
-    vbeOutput.clear();
-    return ans;
+    const ans = await vscode.window.showInformationMessage(
+      confirmMessage, 
+      { modal: true },
+      { title: 'No', isCloseAffordance: true, dialogValue: false },
+      { title: 'Yes', isCloseAffordance: false, dialogValue: true}
+    );
+    return (ans?.dialogValue) ?? false;
   }
-  return 'Yes';
+  return true;
 }
 
 
@@ -331,7 +334,26 @@ function logToOutputTab(r: dirCompare.Result, diffTitle: string, doClear : boole
   vbeOutput.appendLine(result.join('\n') || STRING_EMPTY);
 }
 
+export type DiffState = 'modified' | 'add' | 'removed' | 'notModified';
+
+function createDiffInfo(r: dirCompare.Result): DiffFileInfo[]{
+  const result = r.diffSet!.filter(_ => _.state !== 'equal').map(_ => {
+    const moduleName = _.name1 || _.name2 || STRING_EMPTY;
+    const diffState: DiffState = _.name1 === _.name2 ? 'modified' :( _.name1 ? 'add' : 'removed');
+
+    const file1 = path.resolve(_.path1 ?? '', _.name1 ?? '');
+    const file2 = path.resolve(_.path2 ?? '', _.name2 ?? '');
+    const parentFolder = path.basename(_.path2 ?? '');
+    const titleBaeTo = parentFolder === FOLDER_VBE ? 'base-vbe: ' : 'base-src: ';
+
+    const obj :DiffFileInfo = {moduleName, diffState, baseFilePath: file1, compareFilePath: file2, titleBaeTo};
+    return obj;
+  });
+  return result;
+}
+
 async function saveDiffFiles(r: dirCompare.Result, base: string, src: string, vbe: string){
+  // file or folder
   const isDir = await common.dirExists(src);
 
   const dirSrc = isDir ? src : path.dirname(src);
@@ -398,17 +420,21 @@ export async function deleteModulesInFolder(pathSrc: string, isDiffFile: boolean
 }
 
 
+export async function updateModification()
+{
+  await fileDiffProvider.updateModification();
+} 
+
 export async function compareModules(pathBook: string){
   const {srcDir, baseDir, vbeDir} = getVbecmDirs(pathBook, 'compareModules');
 
   await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY); 
-
   const r = comparePath(baseDir, srcDir);
-  logToOutputTab(r, 'src');
-
   const r2 = comparePath(baseDir, vbeDir);
-  logToOutputTab(r2, 'vbe', false);
+  const diffResults: DiffFileInfo[] = createDiffInfo(r);
+  const diffResults2: DiffFileInfo[] = createDiffInfo(r2);
 
+  return {diffResults, diffResults2};
 }
 
 export async function getModulesCountInFolder(pathSrc: string){
@@ -430,6 +456,31 @@ export async function getModulesCountInFolder(pathSrc: string){
     throw(error);
   }
 }
+
+export async function resolveVbeConflicting(pathBook: string, moduleFileName: string){
+  const {baseDir, vbeDir} = getVbecmDirs(pathBook, 'resolveVbeConflicting');
+  const v = path.resolve(vbeDir, moduleFileName);
+  const b = path.resolve(baseDir, moduleFileName);
+  fse.copyFileSync(v, b);
+  await updateModification();
+}
+
+export async function diffBaseTo(resource: DiffFileInfo): Promise<void> {
+  const b = vscode.Uri.file(resource.baseFilePath ?? '');
+  const c = vscode.Uri.file(resource.compareFilePath ?? '');
+  const t = (resource.titleBaeTo ?? '') + resource.moduleName;
+  await vscode.commands.executeCommand('vscode.diff', b, c, t);  
+}
+
+export async function diffSrcToVbe(resource: DiffFileInfo, bookPath: string): Promise<void> {
+  const {srcDir, vbeDir} = getVbecmDirs(bookPath);
+  const m = resource.moduleName ?? '';
+  const v = vscode.Uri.file(path.resolve(vbeDir, m));
+  const s = vscode.Uri.file(path.resolve(srcDir, m));
+  const t = 'vbe-src: ' + resource.moduleName;
+  await vscode.commands.executeCommand('vscode.diff', v, s, t);  
+}
+
 
 async function exportModuleAsync(bookPath: string, pathToExport: string, moduleFileNameOrPath: string) {
   // export modules
@@ -497,10 +548,8 @@ async function importModuleSync(pathBook: string, modulePath: string = STRING_EM
 
     const r = comparePath(srcPath, vbePath);
     if (r.same === false){
-      logToOutputTab(r, 'src, vbe');
       await saveDiffFiles(r, baseDir, srcDir, vbeDir);
       vscode.window.showWarningMessage('May be Ok, some files are format in VBE engine. Case or Space.');
-      //throw(Error('Import verify Error.'));
     }
   } catch (error) {
     console.log(error);
