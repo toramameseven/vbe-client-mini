@@ -43,9 +43,9 @@ describe('#vbsModules.exportModulesForUpdate', () => {
     await common.rmDirIfExist(pathSrc, { recursive: true, force: true });
 
     if (await common.dirExists(pathSrc)){
-      await vbs.deleteModulesInFolder(pathSrc, true);
-      await vbs.deleteModulesInFolder(pathSrcBase, true);
-      await vbs.deleteModulesInFolder(pathSrcVbe, true);
+      await vbs.deleteModulesInFolder(pathSrc);
+      await vbs.deleteModulesInFolder(pathSrcBase);
+      await vbs.deleteModulesInFolder(pathSrcVbe);
     }
   });
   
@@ -117,9 +117,9 @@ describe('#vbsModules.exportFrxModules', () => {
 
   before(async function(){
     
-    await vbs.deleteModulesInFolder(pathSrc, true);
-    await vbs.deleteModulesInFolder(pathSrcBase, true);
-    await vbs.deleteModulesInFolder(pathSrcVbe, true);
+    await vbs.deleteModulesInFolder(pathSrc);
+    await vbs.deleteModulesInFolder(pathSrcBase);
+    await vbs.deleteModulesInFolder(pathSrcVbe);
 
     try {
       await vbs.exportFrxModules(bookPath); 

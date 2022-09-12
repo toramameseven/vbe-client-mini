@@ -21,7 +21,7 @@ export async function handlerExportModules(uriBook: vscode.Uri){
   displayMenus(false);
 
   // function to test source is modified?
-  const diffTestAndConfirm = testAndConfirm('Some files modified in the Source folder. Do you want to export? Check Output tab.');
+  const diffTestAndConfirm = testAndConfirm('Some files modified in the Source folder. Do you export? Check vbe view.');
   
   // export the source folder and the base folder
   try{
@@ -75,7 +75,7 @@ export async function handlerImportModules(uriBook: vscode.Uri) {
   displayMenus(false);
   
   // temp vs vase
-  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you import? Check output tab.');
+  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you import? Check vbe view.');
 
   try {
     const r = await vbs.importModules(uriBook.fsPath, STRING_EMPTY, diffTestAndConfirm);
@@ -97,7 +97,7 @@ export async function handlerCommitAllModule(uriFolder: vscode.Uri) {
   const bookPath = await getExcelPathSrcFolder(uriFolder);
   displayMenus(false);
 
-  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push all? Check output tab.');
+  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push all? Check vbe view.');
 
   try {
     const r = await vbs.importModules(bookPath, STRING_EMPTY, diffTestAndConfirm);
@@ -115,7 +115,7 @@ export async function handlerCommitAllModule(uriFolder: vscode.Uri) {
 
 export async function handlerCommitModule(uriModule: vscode.Uri) {
   displayMenus(false);
-  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified.Do you push this file?');
+  const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push this file?');
 
   const bookPath = await getExcelPathFromModule(uriModule);
   const modulePath = uriModule.fsPath;
@@ -203,7 +203,7 @@ export async function handlerVbaRun(textEditor: TextEditor, edit: vscode.TextEdi
 export async function handlerCheckModified(uriFolder: vscode.Uri)
 {
   const bookPath = await getExcelPathSrcFolder(uriFolder);
-  await vbs.updateModification(uriFolder);
+  await vbs.updateModification(bookPath);
 }
 
 export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo){

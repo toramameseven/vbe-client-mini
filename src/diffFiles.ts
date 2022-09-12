@@ -40,10 +40,10 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
 
 	getTreeItem(element: DiffFileInfo): vscode.TreeItem {
     if (element.isHeader ){
-      const treeItem =  new FileDiff(element.moduleName ?? '', vscode.TreeItemCollapsibleState.Collapsed);
+      const treeItem =  new FileDiff(element.moduleName ?? STRING_EMPTY, vscode.TreeItemCollapsibleState.Collapsed);
       return treeItem;
     } else {
-      const treeItem =  new FileDiff(element.moduleName ?? '', vscode.TreeItemCollapsibleState.None);
+      const treeItem =  new FileDiff(element.moduleName ?? STRING_EMPTY, vscode.TreeItemCollapsibleState.None);
       treeItem.command = { command: 'vbeDiffView.diff', title: 'Open File', arguments: [element], };
       if (element.titleBaeTo === 'base-vbe: ') {
         treeItem.contextValue = 'FileDiffTreeItemBaseVbe';
@@ -65,16 +65,18 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
     }
 	}
 
-  async updateModification(){
+  async updateModification(bookPath?: string){
     displayMenus(false);
 
-    const activeTextEditor = vscode.window.activeTextEditor?.document.uri;
-    
-    const bookPath = await this.getExcelPathFromModule(activeTextEditor);
- 
-    if (bookPath){
+    let bookPathToUpdate = bookPath;
+    if (!bookPathToUpdate) {
+      const activeTextEditor = vscode.window.activeTextEditor?.document.uri;
+      const bookPathToUpdate = await this.getExcelPathFromModule(activeTextEditor);
+    }
+
+    if (bookPathToUpdate && await common.fileExists(bookPathToUpdate)){
       // update path
-      this.bookPath = bookPath;
+      this.bookPath = bookPathToUpdate;
     }
 
     try {
@@ -103,7 +105,7 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
   }
 }
 
-export const fileDiffProvider = new FileDiffProvider('', [], []);
+export const fileDiffProvider = new FileDiffProvider(STRING_EMPTY, [], []);
 
 export class FileDiff extends vscode.TreeItem {
 	constructor(
