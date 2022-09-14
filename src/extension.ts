@@ -88,7 +88,8 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(commandCommit);
   
-	vscode.window.registerTreeDataProvider('vbeDiffView', fileDiffProvider);
+	//vscode.window.registerTreeDataProvider('vbeDiffView', fileDiffProvider);
+  //vscode.window.createTreeView('vbeDiffView', {treeDataProvider: fileDiffProvider});
 
   const commandDiffRefresh = vscode.commands.registerCommand('vbeDiffView.refreshEntry', () => fileDiffProvider.updateModification());
   context.subscriptions.push(commandDiffRefresh);

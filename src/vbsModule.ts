@@ -281,7 +281,8 @@ export function comparePath(path1: string, path2: string){
     excludeFilter: `**/*.frx,.git,.gitignore, ${FOLDER_BASE}, ${FOLDER_VBE}`,
     ignoreAllWhiteSpaces: true,
     ignoreEmptyLines: true,
-    ignoreCase: true
+    ignoreCase: true,
+    ignoreContentCase: true
   };
 
   const r = dirCompare.compareSync(path1, path2, options);
@@ -409,7 +410,6 @@ async function exportModuleAsync(bookPath: string, pathToExport: string, moduleF
 
 
 async function importModuleSync(pathBook: string, modulePath: string = STRING_EMPTY, isRecovery: boolean = false) {
-
   // get folders
   const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'importModule');
 

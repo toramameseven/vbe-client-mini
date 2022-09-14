@@ -71,12 +71,13 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
     let bookPathToUpdate = bookPath;
     if (!bookPathToUpdate) {
       const activeTextEditor = vscode.window.activeTextEditor?.document.uri;
-      const bookPathToUpdate = await this.getExcelPathFromModule(activeTextEditor);
+      bookPathToUpdate = await this.getExcelPathFromModule(activeTextEditor?.path);
     }
 
     if (bookPathToUpdate && await common.fileExists(bookPathToUpdate)){
       // update path
       this.bookPath = bookPathToUpdate;
+      vbeTreeView.title = 'diff: ' + path.basename(bookPathToUpdate);
     }
 
     try {
@@ -90,9 +91,9 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
     }
   }
 
-  async getExcelPathFromModule(uri: vscode.Uri | undefined) {
-    if (uri === undefined){return uri;}
-    const dirParent = path.dirname(uri.fsPath);
+  async getExcelPathFromModule(pathModule: string | undefined) {
+    if (pathModule === undefined){return pathModule;}
+    const dirParent = path.dirname(pathModule);
     const r = await this.getExcelPathSrcFolder(vscode.Uri.file(dirParent));
     return r;
   }
@@ -106,6 +107,7 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
 }
 
 export const fileDiffProvider = new FileDiffProvider(STRING_EMPTY, [], []);
+export const vbeTreeView = vscode.window.createTreeView('vbeDiffView', {treeDataProvider: fileDiffProvider});
 
 export class FileDiff extends vscode.TreeItem {
 	constructor(
