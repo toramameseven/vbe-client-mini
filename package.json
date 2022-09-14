@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -24,18 +24,18 @@
 		"workspaceContains:**/*.cls",
 		"workspaceContains:**/*.bas",
 		"workspaceContains:**/*.frm",
-    "onView:vbeDiffView"
+		"onView:vbeDiffView"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-    "views": {
-      "explorer": [
-        {
-          "id": "vbeDiffView",
-          "name": "Vbe Diff"
-        }
-      ]
-    },
+		"views": {
+			"explorer": [
+				{
+					"id": "vbeDiffView",
+					"name": "Vbe Diff"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "explorer.export",
@@ -53,11 +53,11 @@
 				"command": "explorer.exportFrx",
 				"title": "Export only frx modules"
 			},
-      {
+			{
 				"command": "explorer.commit-all",
 				"title": "Push All Vba modules"
 			},
-      {
+			{
 				"command": "explorer.testModified",
 				"title": "check modified"
 			},
@@ -73,25 +73,25 @@
 				"command": "editor.checkout",
 				"title": "Pull VBA module"
 			},
-      {
+			{
 				"command": "vbeDiffView.refreshEntry",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
-      {
+			{
 				"command": "vbeDiffView.collapseAll",
 				"title": "collapse All",
 				"icon": "$(collapse-all)"
 			},
-      {
+			{
 				"command": "vbeDiffView.diffVbeSrc",
 				"title": "Diff vbe to src"
 			},
-      {
+			{
 				"command": "vbeDiffView.pushSrc",
 				"title": "Push"
 			},
-      {
+			{
 				"command": "vbeDiffView.resolveVbe",
 				"title": "Resolve vbe"
 			}
@@ -123,38 +123,38 @@
 					"command": "explorer.commit-all",
 					"group": "myGroup@5"
 				},
-        {
+				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
 					"command": "explorer.testModified",
 					"group": "myGroup@6"
 				}
 			],
-      "view/title": [
+			"view/title": [
 				{
 					"command": "vbeDiffView.refreshEntry",
 					"when": "view == vbeDiffView",
 					"group": "navigation@1"
 				},
-        {
+				{
 					"command": "vbeDiffView.collapseAll",
 					"when": "view == vbeDiffView",
 					"group": "navigation@2"
 				}
-      ],
-      "view/item/context": [
-        {
-          "command": "vbeDiffView.diffVbeSrc",
-          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
-        },
-        {
-          "command": "vbeDiffView.pushSrc",
-          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc"
-        },
-        {
-          "command": "vbeDiffView.resolveVbe",
-          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
-        }
-      ],
+			],
+			"view/item/context": [
+				{
+					"command": "vbeDiffView.diffVbeSrc",
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+				},
+				{
+					"command": "vbeDiffView.pushSrc",
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc"
+				},
+				{
+					"command": "vbeDiffView.resolveVbe",
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+				}
+			],
 			"editor/context": [
 				{
 					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
@@ -230,7 +230,7 @@
 	"dependencies": {
 		"@types/uuid": "^8.3.4",
 		"chai": "^4.3.6",
-		"dir-compare": "^4.0.0",
+		"dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
 		"encoding-japanese": "^2.0.0",
 		"fs-extra": "^10.1.0",
 		"fstream": "^1.0.12",

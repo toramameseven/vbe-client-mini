@@ -23,7 +23,7 @@ export async function dirExists(filepath: string) {
 }
 
 
-export function myLog(message: string, title: string = '(_empty_)', isOut: boolean = false)
+export function myLog(message: string, title: string = '(_empty_)', isOut: boolean = true)
 {
   if (!isOut) {return;}
   console.log(`vbecm-ts: ${title}: ${message}`);

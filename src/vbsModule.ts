@@ -324,10 +324,10 @@ export async function compareModules(pathBook: string){
   await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY); 
   const r = comparePath(baseDir, srcDir);
   const r2 = comparePath(baseDir, vbeDir);
-  const diffResults: DiffFileInfo[] = createDiffInfo(r);
-  const diffResults2: DiffFileInfo[] = createDiffInfo(r2);
+  const diffBaseSrc: DiffFileInfo[] = createDiffInfo(r);
+  const diffBaseVbe: DiffFileInfo[] = createDiffInfo(r2);
 
-  return {diffResults, diffResults2};
+  return {diffResults: diffBaseSrc, diffResults2: diffBaseVbe};
 }
 
 async function getModulesCountInFolder(pathSrc: string){
@@ -470,18 +470,20 @@ function runVbs(script: string, param: string[]) {
     const errMessage = (e instanceof Error) ? e.message : 'vbs run error.';
     return { err: errMessage, out: STRING_EMPTY, retValue: STRING_EMPTY, status: 10 };
   }
+
+  // shift jis 2 utf8
+  // only japanese
+  function s2u(sb: Buffer){
+    const vbsEncode = vscode.workspace.getConfiguration('vbecm').get<string>('vbsEncode') || 'windows-31j';
+    return iconv.decode(sb, vbsEncode);
+  };
+
+
+  function getVbsPath(){
+    const rootFolder = path.dirname(__dirname);
+    const vbsPath = path.resolve(rootFolder, 'vbs');
+    return vbsPath;
+  }
 }
 
-// shift jis 2 utf8
-// only japanese
-function s2u(sb: Buffer){
-  const vbsEncode = vscode.workspace.getConfiguration('vbecm').get<string>('vbsEncode') || 'windows-31j';
-  return iconv.decode(sb, vbsEncode);
-};
 
-
-function getVbsPath(){
-  const rootFolder = path.dirname(__dirname);
-  const vbsPath = path.resolve(rootFolder, 'vbs');
-  return vbsPath;
-}

@@ -142,7 +142,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    exit Sub
+    ''exit Sub
     Dim outTitle
     Dim outValue
     outTitle = title
@@ -153,7 +153,7 @@ Sub DebugWriteLine(title, value)
     If outValue = "" Then
         outValue = "(_empty_)"
     End if
-    WScript.StdOut.WriteLine "VBS:: " & outTitle & " : " & outValue
+    WScript.StdOut.WriteLine "VBS::    " & outTitle & " : " & outValue
 End Sub
 
 

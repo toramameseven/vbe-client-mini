@@ -149,6 +149,12 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
               importClassModule excelBookPath, objFile.Path, isUseSheetModule
           End If
         End if
+        If Err.Number <> 0 Then
+            WScript.StdErr.WriteLine ("Can not import modules: " & bookPath)
+            DebugWriteLine "importVbaModules Err", Err.description
+            WScript.Quit(Err.Number)
+        End If
+
     Next
 
     Set modulesFolder = Nothing
