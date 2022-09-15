@@ -28,7 +28,7 @@ export async function handlerExportModules(uriBook: vscode.Uri){
     const r = await vbs.exportModulesForUpdate(uriBook.fsPath, STRING_EMPTY, diffTestAndConfirm);
     r && showInformationMessage('Success export modules.');
 
-    await vbs.updateModification();
+    await vbs.updateModification(uriBook.fsPath);
   }
   catch(e)
   {

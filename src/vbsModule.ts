@@ -252,18 +252,30 @@ export async function comparePathAndGo(base: string, src: string, vbe: string, d
 }
 
 export type DiffState = 'modified' | 'add' | 'removed' | 'notModified';
+export type DiffWith = 'DiffWithSrc'|'DiffWithVbe';
+export type DiffTitle = 'base-vbe: ' | 'base-src: ';
 
-function createDiffInfo(r: dirCompare.Result): DiffFileInfo[]{
+
+function createDiffInfo(r: dirCompare.Result, diffWith: DiffWith, dirBase: string, dirCompare: string): DiffFileInfo[]{
   const result = r.diffSet!.filter(_ => _.state !== 'equal').map(_ => {
     const moduleName = _.name1 || _.name2 || STRING_EMPTY;
-    const diffState: DiffState = _.name1 === _.name2 ? 'modified' :( _.name1 ? 'add' : 'removed');
+    // not used diffState
+    //const diffState: DiffState = _.name1 === _.name2 ? 'modified' :(( _.name2 === undefined || _.size2 === 0) ? 'removed' : 'add');
+    let diffState: DiffState = 'add';
+    if (( _.name2 === undefined || _.size2 === 0)){
+      diffState = 'removed';
+    } else if(_.name1 === _.name2){
+      diffState = 'modified';
+    }
 
-    const file1 = (_.path1 && _.name1) ? path.resolve(_.path1, _.name1) : STRING_EMPTY;
-    const file2 = (_.path2 && _.name2) ? path.resolve(_.path2, _.name2) : STRING_EMPTY;
-    const parentFolder = path.basename(_.path2 ?? _.path1 ?? STRING_EMPTY);
-    const titleBaeTo = parentFolder === FOLDER_VBE ? 'base-vbe: ' : 'base-src: ';
+    
 
-    const obj :DiffFileInfo = {moduleName, diffState, baseFilePath: file1, compareFilePath: file2, titleBaeTo};
+    const file1 = path.resolve(dirBase, moduleName);
+    const isBase = _.name1 !== undefined;
+    const file2 = path.resolve(dirCompare, moduleName);
+    const isCompare =  _.name2 !== undefined;
+    const titleBaseTo: DiffTitle = diffWith === 'DiffWithVbe' ? 'base-vbe: ' : 'base-src: ';
+    const obj :DiffFileInfo = {moduleName, diffState, baseFilePath: file1, compareFilePath: file2, titleBaseTo, isBase, isCompare};
     return obj;
   });
   return result;
@@ -305,7 +317,7 @@ export async function deleteModulesInFolder(pathSrc: string){
         const isFile = fse.statSync(fullPath).isFile();
         const ext  = path.extname(file).toLowerCase();
         if (isFile && extensions.includes(ext)){
-          fse.rmSync(fullPath);
+          fse.rmSync(fullPath, {force: true});
         }
     });   
   } catch (error) {
@@ -324,10 +336,10 @@ export async function compareModules(pathBook: string){
   await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY); 
   const r = comparePath(baseDir, srcDir);
   const r2 = comparePath(baseDir, vbeDir);
-  const diffBaseSrc: DiffFileInfo[] = createDiffInfo(r);
-  const diffBaseVbe: DiffFileInfo[] = createDiffInfo(r2);
+  const diffBaseSrc: DiffFileInfo[] = createDiffInfo(r, 'DiffWithSrc', baseDir, srcDir);
+  const diffBaseVbe: DiffFileInfo[] = createDiffInfo(r2, 'DiffWithVbe', baseDir, vbeDir);
 
-  return {diffResults: diffBaseSrc, diffResults2: diffBaseVbe};
+  return {diffBaseSrc, diffBaseVbe};
 }
 
 async function getModulesCountInFolder(pathSrc: string){
@@ -350,18 +362,57 @@ async function getModulesCountInFolder(pathSrc: string){
 }
 
 export async function resolveVbeConflicting(pathBook: string, moduleFileName: string){
-  const {baseDir, vbeDir} = getVbecmDirs(pathBook, 'resolveVbeConflicting');
+  const {srcDir, baseDir, vbeDir} = getVbecmDirs(pathBook, 'resolveVbeConflicting');
+  const s = path.resolve(srcDir, moduleFileName);
   const v = path.resolve(vbeDir, moduleFileName);
   const b = path.resolve(baseDir, moduleFileName);
-  fse.copyFileSync(v, b);
+
+  const isVbe = await common.fileExists(v);
+  const isBase = await common.fileExists(b);
+  const isSrc = await common.fileExists(s);
+
+  if (isBase && isVbe){
+    // modified
+    setReadOnly(v, false);
+    fse.rmSync(b, {force: true});
+    fse.copyFileSync(v, b);
+  } else if(isBase){
+    // deleted in vbe
+    fse.rmSync(b, {force: true});
+    fse.rmSync(s, {force: true});
+  } else if(isVbe){
+    // added in vbe
+    setReadOnly(v, false);
+    fse.rmSync(b, {force: true});
+    fse.copyFileSync(v, b);
+    fse.rmSync(s, {force: true});
+    fse.copyFileSync(v, s);
+  }
+
   await updateModification();
 }
 
+
+//TODO is src is empty, create new file in src
 export async function diffBaseTo(resource: DiffFileInfo): Promise<void> {
   const b = vscode.Uri.file(resource.baseFilePath ?? STRING_EMPTY);
   const c = vscode.Uri.file(resource.compareFilePath ?? STRING_EMPTY);
-  const t = (resource.titleBaeTo ?? STRING_EMPTY) + resource.moduleName;
+  
+  await createFileIfNotExits(resource.baseFilePath ?? STRING_EMPTY);
+  await createFileIfNotExits(resource.compareFilePath ?? STRING_EMPTY);
+
+  const t = (resource.titleBaseTo ?? STRING_EMPTY) + resource.moduleName;
+  setReadOnlyUri(b);
+  if (resource.titleBaseTo === 'base-vbe: '){
+    setReadOnlyUri(c);
+  }
   await vscode.commands.executeCommand('vscode.diff', b, c, t);  
+}
+
+async function createFileIfNotExits(filePath: string){
+  if (!await common.fileExists(filePath)){
+    fse.writeFileSync(filePath, '');
+  }
 }
 
 export async function diffSrcToVbe(resource: DiffFileInfo, bookPath: string): Promise<void> {
@@ -370,6 +421,11 @@ export async function diffSrcToVbe(resource: DiffFileInfo, bookPath: string): Pr
   const v = vscode.Uri.file(path.resolve(vbeDir, m));
   const s = vscode.Uri.file(path.resolve(srcDir, m));
   const t = 'vbe-src: ' + resource.moduleName;
+
+  await createFileIfNotExits(path.resolve(vbeDir, m));
+  await createFileIfNotExits(path.resolve(srcDir, m));
+
+  setReadOnlyUri(v);
   await vscode.commands.executeCommand('vscode.diff', v, s, t);
 }
 
@@ -479,10 +535,23 @@ function runVbs(script: string, param: string[]) {
   };
 
 
-  function getVbsPath(){
-    const rootFolder = path.dirname(__dirname);
-    const vbsPath = path.resolve(rootFolder, 'vbs');
-    return vbsPath;
+
+}
+function getVbsPath(){
+  const rootFolder = path.dirname(__dirname);
+  const vbsPath = path.resolve(rootFolder, 'vbs');
+  return vbsPath;
+}
+
+function setReadOnlyUri(uriFile: vscode.Uri, isReadOnly: boolean = true){
+  setReadOnly(uriFile.fsPath || uriFile.path, isReadOnly);
+}
+
+function setReadOnly(pathFile: string, isReadOnly: boolean = true){
+  const { err, status } = runVbs('setReadOnly.vbs', [pathFile, isReadOnly ? '1' : '0']);
+  if (status !== 0 || err) {
+    const error = Error(err);
+    throw (error);
   }
 }
 

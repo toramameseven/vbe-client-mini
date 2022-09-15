@@ -98,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('vbeDiffView.pushSrc', (info) => handler.handlerCommitModuleFromVbeDiff(info));
   vscode.commands.registerCommand('vbeDiffView.resolveVbe', (info) => handler.handlerResolveVbeConflicting(info));
 
-  vscode.commands.registerCommand('vbeDiffView.diff', (resource) => handler.handlerDiffBaseTo(resource));
+  vscode.commands.registerCommand('vbeDiffView.diffBaseTo', (resource) => handler.handlerDiffBaseTo(resource));
   vscode.commands.registerCommand('vbeDiffView.diffVbeSrc', (resource) => handler.handlerDiffSrcToVbe(resource));
   
   
