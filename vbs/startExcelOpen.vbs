@@ -105,6 +105,7 @@ Sub CloseExcelFile(bookName)
   If objExcel Is Nothing Then
       WScript.Quit(0)
   End If
+  
   If Err.Number <> 0 Then
       WScript.Quit(Err.Number)
   End If

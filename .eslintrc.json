@@ -23,5 +23,8 @@
         "vbs",
         "xlsms",
         "**/*.d.ts"
+    ],
+    "extends": [
+      "prettier"
     ]
 }

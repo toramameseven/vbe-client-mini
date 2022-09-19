@@ -58,6 +58,7 @@ End if
 WScript.Sleep 1000
 WScript.StdOut.WriteLine "Compile complete"
 On Error GoTo 0
+WScript.Quit(0)
 
 
 

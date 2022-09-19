@@ -32,33 +32,40 @@
 			"explorer": [
 				{
 					"id": "vbeDiffView",
-					"name": "Vbe Diff"
+					"name": "Vbe Diff",
+					"when": "isWindows"
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "vbeDiffView",
+				"contents": "No modifications found"
+			}
+		],
 		"commands": [
 			{
-				"command": "explorer.export",
+				"command": "book.export",
 				"title": "Export all VBA modules"
 			},
 			{
-				"command": "explorer.import",
+				"command": "book.import",
 				"title": "Import all VBA modules"
 			},
 			{
-				"command": "explorer.compile",
+				"command": "book.compile",
 				"title": "Compile VBA"
 			},
 			{
-				"command": "explorer.exportFrx",
+				"command": "book.exportFrx",
 				"title": "Export only frx modules"
 			},
 			{
-				"command": "explorer.commit-all",
+				"command": "srcFolder.commit-all",
 				"title": "Push All Vba modules"
 			},
 			{
-				"command": "explorer.testModified",
+				"command": "srcFolder.checkModified",
 				"title": "check modified"
 			},
 			{
@@ -70,11 +77,11 @@
 				"title": "Push VBA module"
 			},
 			{
-				"command": "editor.checkout",
+				"command": "editor.pullModule",
 				"title": "Pull VBA module"
 			},
 			{
-				"command": "vbeDiffView.refreshEntry",
+				"command": "vbeDiffView.refreshModification",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
@@ -100,75 +107,75 @@
 			"explorer/context": [
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "explorer.export",
+					"command": "book.export",
 					"group": "myGroup@1"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "explorer.import",
+					"command": "book.import",
 					"group": "myGroup@2"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "explorer.compile",
+					"command": "book.compile",
 					"group": "myGroup@3"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
-					"command": "explorer.exportFrx",
+					"command": "book.exportFrx",
 					"group": "myGroup@4"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "explorer.commit-all",
+					"command": "srcFolder.commit-all",
 					"group": "myGroup@5"
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "explorer.testModified",
+					"command": "srcFolder.checkModified",
 					"group": "myGroup@6"
 				}
 			],
 			"view/title": [
 				{
-					"command": "vbeDiffView.refreshEntry",
-					"when": "view == vbeDiffView",
+					"command": "vbeDiffView.refreshModification",
+					"when": "view == vbeDiffView && isWindows",
 					"group": "navigation@1"
 				},
 				{
 					"command": "vbeDiffView.collapseAll",
-					"when": "view == vbeDiffView",
+					"when": "view == vbeDiffView && isWindows",
 					"group": "navigation@2"
 				}
 			],
 			"view/item/context": [
 				{
 					"command": "vbeDiffView.diffVbeSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
 				},
 				{
 					"command": "vbeDiffView.pushSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc"
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
 				},
 				{
 					"command": "vbeDiffView.resolveVbe",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe"
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
 				}
 			],
 			"editor/context": [
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.run",
 					"group": "myGroup@1"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.commit",
 					"group": "myGroup@2"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand",
-					"command": "editor.checkout",
+					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"command": "editor.pullModule",
 					"group": "myGroup@3"
 				}
 			]
@@ -216,22 +223,23 @@
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
 		"@types/tar": "^6.1.2",
+		"@types/uuid": "^8.3.4",
 		"@types/vscode": "^1.69.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"@vscode/test-electron": "^2.1.5",
 		"esbuild": "^0.14.50",
 		"eslint": "^8.18.0",
+		"eslint-config-prettier": "^8.5.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
+		"prettier": "^2.7.1",
 		"rimraf": "^3.0.2",
 		"typescript": "^4.7.4"
 	},
 	"dependencies": {
-		"@types/uuid": "^8.3.4",
 		"chai": "^4.3.6",
 		"dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
-		"encoding-japanese": "^2.0.0",
 		"fs-extra": "^10.1.0",
 		"fstream": "^1.0.12",
 		"iconv-lite": "^0.6.3",

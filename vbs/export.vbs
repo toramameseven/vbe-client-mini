@@ -57,6 +57,7 @@ isExportSheet = True
 isExportForm = True
 
 '' debug output information
+DebugWriteLine "################", WScript.ScriptName
 DebugWriteLine "bookPath", bookPath
 DebugWriteLine "pathToExport", pathToExport
 DebugWriteLine "moduleFileName", moduleFileName
@@ -157,7 +158,7 @@ On Error Goto 0
 Set book = Nothing
 Set objExcel = Nothing
 Set fso = Nothing
-WScript.StdOut.WriteLine "Export Complete"
+WScript.StdOut.WriteLine "Export Complete."
 WScript.Quit(0)
 
 '' modules

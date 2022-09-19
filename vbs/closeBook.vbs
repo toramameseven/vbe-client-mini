@@ -1,6 +1,10 @@
 Option Explicit
+
+'' load external vbs.
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
 
@@ -15,36 +19,25 @@ End If
 
 bookName = fso.GetFileName(bookPath)
 
-WScript.echo bookName
+DebugWriteLine "################ start", WScript.ScriptName
+DebugWriteLine "bookName", bookName
+DebugWriteLine "bookPath", bookPath
 
+'On Error Resume Next
+Dim r
 CloseExcelFile bookName
+DebugWriteLine "----------------r", r
 
-Sub CloseExcelFile(bookName)
-  '' is objExcel running?
-  Dim objExcel
-  Dim IsRunExcel
-  On Error Resume Next
-  Set objExcel = GetObject(,"Excel.Application")
-  If objExcel Is Nothing Then
-      WScript.Quit(0)
-  End If
-  If Err.Number <> 0 Then
-      WScript.Quit(Err.Number)
-  End If
-  On Error Goto 0
+If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine "Can not close excel."
+    DebugWriteLine "----------------Err", "Can not close excel."
+    WScript.Quit(Err.Number)
+End If
 
-  Dim wb, IsOpenFile
-  IsOpenFile = False
-  For Each wb in objExcel.Workbooks
-    If LCase(wb.Name) = LCase(bookName) Then    
-      IsOpenFile = True
-      wb.Close()
-      Exit For
-    End if
-  Next
-
-  WScript.Quit(0)
-End Sub
+WScript.StdOut.WriteLine "Excel Close Complete."
+DebugWriteLine "----------------End", WScript.ScriptName
+WScript.Quit(0)
+'////////////////////////////////////////////////////////////////////////////
 
 
 
