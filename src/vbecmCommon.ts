@@ -10,6 +10,10 @@ export class VbecmTextDocumentContentProvider implements vscode.TextDocumentCont
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
+  refresh(uri: vscode.Uri): void {
+    this.onDidChangeEmitter.fire(uri);
+  }
+
   async provideTextDocumentContent(uriModule: vscode.Uri): Promise<string> {
     const isExist = await fileExists(uriModule.path);
     const text = isExist ? fse.readFileSync(uriModule.path) : undefined;

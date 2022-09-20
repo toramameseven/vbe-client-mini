@@ -5,8 +5,9 @@ import * as vscode from 'vscode';
 import * as statusBar from './statusBar';
 import { vbeOutput } from './vbeOutput';
 import * as handler from './handlers';
-import { fileDiffProvider } from './diffFiles';
 import * as vbecmCommon from './vbecmCommon';
+
+export const vbeReadOnlyDocumentProvider = new vbecmCommon.VbecmTextDocumentContentProvider();
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -19,9 +20,8 @@ export function activate(context: vscode.ExtensionContext) {
   // register a content provider for the vbecm-scheme
   // for create readonly module
   const vbeScheme = 'vbecm';
-  const vbeProvider = new vbecmCommon.VbecmTextDocumentContentProvider();
   context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider(vbeScheme, vbeProvider)
+    vscode.workspace.registerTextDocumentContentProvider(vbeScheme, vbeReadOnlyDocumentProvider)
   );
 
   //   --------------book

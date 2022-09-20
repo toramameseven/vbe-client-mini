@@ -11,7 +11,6 @@ This extension thinks Excel as Excel Server.
 * Windows 10
 * Excel
 
-
 ## Features
 
 before use this extension, you must back up your xlsm or xlam file.
@@ -31,6 +30,28 @@ before use this extension, you must back up your xlsm or xlam file.
 * Push all modules form a Src_[xxx.xlsm] folder
   * you can push all modules in the source folder to the excel book.
 
+### explorer DIFF:
+
+Modified modules are shown in the DIFF.
+
+#### src(base)
+
+If there is some modification in the src folder, the modified modules are shown.
+Vbecm checks the modification between the src and base folder.
+
+You can click to compare the module in base and the module in the src.
+
+You can right click to push the module to a Excel. 
+
+#### vbe(base)
+
+If there is some modification in the VBE, the modified modules are shown.
+Vbecm checks the modification between the src and vbe folder.
+
+You can click to compare the module in base and the module in the vbe.
+
+You can right click to resolve the conflicting.
+
 ### editor context menu
 
 * Push vba module to a xlsm file on an editor.
@@ -39,13 +60,44 @@ before use this extension, you must back up your xlsm or xlam file.
   * select a sub XXX() line, and right click, and select run.
 * Pull selected module form xlsm file.
 
+
+### Folders
+
+#### src_[excelBookName] folder
+
+When you export modules, the modules are in the src_[excelBookName] folder.
+
+
+#### .base folder
+
+In the src_[excelBookName] folder, you can see a .base folder.
+When you commit or import modules, this folder is updated.
+And when you export modules, vbecm tests if there are difference between the src_[excelBookName]  and .base folders.
+
+#### .vbe folder
+
+In the src_[excelBookName] folder, you can see a .vbe folder.
+When you commit or import modules or check modification, this folder is updated.
+And when you import modules, vbecm tests if there are difference between the .vbe  and .base folders.
+
+### exclude settings
+
+You should better exclude the .base and .vbe folder at the explorer and the search.
+
+```
+  "files.exclude": {
+    "**/.base": true,
+    "**/.vbe": true,
+  },
+  "search.exclude": {
+      "**/.base": true,
+      "**/.vbe": true,
+  },
+```
 ### settings
 
 * At cjk language area, vbs message not work good beside Japanese. Set encoding option
   * vbecm.vbsEncode, for japanese 'windows-31j'
-
-let's fun vba life.
-
 
 ## Recommendation
 
@@ -67,14 +119,12 @@ vsce publish
 
 * If the encoding of your vba modules is not convertible to utf8, do not save the modules on utf8.
   Sometimes I do this, and messages in modules become unreadable.
-* At cjk language area, vbs message not work good beside Japanese. Please customize your encoding.
-* Sometimes, Excel remain on background. You should kill the process on a task manager.
-* When you export modules, vbecm asks "Do you want to export" or etc. in notification window.
-  Unless you click Yes or No, you can not select next command.
-* Sometimes, you meet export or import error. So you recover from a backup file.
-* When vbecm is working, [[vbecm]] is displayed on the status bar. Check the notification window, if some confirm dialog exists. Or some bug includes, please reload your vscode.
+* At cjk language area, vbs message not work good beside Japanese. Please customize your encoding on the settings.
+* Sometimes, Excel remain on background. You should kill the process on a task manager. Sorry.
+* Sometimes, you meet export or import error. So you recover from a backup excel book.
+* When vbecm is working, [[vbecm]] is displayed on the status bar. If no vbecm menus displayed with out [[vbecm]] , maybe bugs, please reload your vscode.
 * When you import a sheet module, sometimes you find new empty line at end of module.
-* Sometime, you may see the folder src_GUID. It remains when errors occur. Please delete it.
+* Sometime, you may see the folder src_GUID. It stays when some errors occur. Please delete it.
 
 ## Shallow dive
 
@@ -89,7 +139,7 @@ Thanks for the [VbaDeveloper](https://github.com/hilkoc/vbaDeveloper "VbaDevelop
 
 ### Opened excel file
 
-While vbecm is working, Excel dose not close. Please close the file when you end using it.
+While vbecm is working, Excel dose not close. Please close the Excel when you end using it.
 
 ### For xlam file
 
@@ -99,14 +149,6 @@ When you use an xlam file, vbecm add a book to the excel instance.
 
 When you import a frm module, you find a extra line added.
 vbecm will delete the line.
-
-### .base folder
-
-In the Src_[xxx.xlsm] folder, you can see a .base folder. There are modules same with a Excel Book.
-When you commit or import modules, vbecm tests if modules in a excel are modified.
-
-You should better exclude this folder from the explorer and the search.
-
 
 ## Release Notes
 

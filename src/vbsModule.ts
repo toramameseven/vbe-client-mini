@@ -9,6 +9,7 @@ import dirCompare = require('dir-compare');
 import { dirExists, fileExists } from './vbecmCommon';
 import * as vbecmCommon from './vbecmCommon';
 import { DiffFileInfo, fileDiffProvider } from './diffFiles';
+import { vbeReadOnlyDocumentProvider } from './extension';
 
 export const FOLDER_VBS = 'vbs';
 export const FOLDER_PREFIX_SRC = 'src_';
@@ -391,7 +392,11 @@ async function getModulesCountInFolder(pathSrc: string) {
   }
 }
 
-export async function resolveVbeConflicting(pathBook: string, moduleFileName: string) {
+export async function resolveVbeConflicting(
+  pathBook: string,
+  moduleFileName: string,
+  autoDialog?: boolean
+) {
   const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'resolveVbeConflicting');
   const s = path.resolve(srcDir, moduleFileName);
   const v = path.resolve(vbeDir, moduleFileName);
@@ -403,16 +408,25 @@ export async function resolveVbeConflicting(pathBook: string, moduleFileName: st
 
   if (isBase && isVbe) {
     // VBE modified, copy vbe to base, src is remain now
-    copyModuleSync(moduleFileName, vbeDir, baseDir);
+    const r = await modalDialogShow('Do you copy the module in the vbe to the base.', autoDialog);
+    r && copyModuleSync(moduleFileName, vbeDir, baseDir);
   } else if (isBase) {
     // deleted in vbe, modules in base and src will be delete.
-    fse.rmSync(b, { force: true });
-    fse.rmSync(s, { force: true });
+    const r = await modalDialogShow(
+      'Do you delete the modules in the base and source.',
+      autoDialog
+    );
+    r && fse.rmSync(b, { force: true });
+    r && fse.rmSync(s, { force: true });
   } else if (isVbe) {
     // added in vbe, copy vbe to base and src.
     // copy frx ,too
-    copyModuleSync(moduleFileName, vbeDir, baseDir);
-    copyModuleSync(moduleFileName, vbeDir, srcDir);
+    const r = await modalDialogShow(
+      'Do you copy the module in the vbe to the base and the source.',
+      autoDialog
+    );
+    r && copyModuleSync(moduleFileName, vbeDir, baseDir);
+    r && copyModuleSync(moduleFileName, vbeDir, srcDir);
   }
   await updateModification();
 }
@@ -468,10 +482,9 @@ export async function diffSrcToVbe(resource: DiffFileInfo, bookPath: string): Pr
 }
 
 async function createVirtualModule(uriModule: vscode.Uri) {
-  //const isExist = await vbecmCommon.fileExists(uriModule.fsPath);
-  //const text = isExist ? fse.readFileSync(uriModule.fsPath, 'utf8') : STRING_EMPTY;
   const uri = vscode.Uri.parse('vbecm:' + uriModule.fsPath);
   const doc = await vscode.workspace.openTextDocument(uri); // calls back into the provider
+  vbeReadOnlyDocumentProvider.refresh(uri);
   //await vscode.window.showTextDocument(doc, { preview: false });
   return doc.uri;
 }
@@ -615,4 +628,17 @@ export function s2u(sb: Buffer) {
   const vbsEncode =
     vscode.workspace.getConfiguration('vbecm').get<string>('vbsEncode') || 'windows-31j';
   return iconv.decode(sb, vbsEncode);
+}
+
+async function modalDialogShow(message: string, retValue?: boolean) {
+  if (retValue !== undefined) {
+    return retValue;
+  }
+  const ans = await vscode.window.showInformationMessage(
+    message,
+    { modal: true },
+    { title: 'No', isCloseAffordance: true, dialogValue: false },
+    { title: 'Yes', isCloseAffordance: false, dialogValue: true }
+  );
+  return ans?.dialogValue ?? false;
 }

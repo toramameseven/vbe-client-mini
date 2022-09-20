@@ -260,7 +260,6 @@ async function handlerCommitModuleFromVbeDiffRemove(bookPath: string, modulePath
 }
 
 export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo) {
-  // get book path from a modules in vbe folder.
   const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
   if (bookPath === undefined) {
     showWarningMessage(fileInfo.compareFilePath + ' is not a VBE project file.');
