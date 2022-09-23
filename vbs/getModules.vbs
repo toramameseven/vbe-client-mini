@@ -18,6 +18,11 @@ Else
     bookPath = fso.BuildPath(projectRoot, "xlsms\macrotest.xlsm")
 End If
 
+'' debug output information
+DebugWriteLine "################", WScript.ScriptName
+DebugWriteLine "bookPath", bookPath
+
+
 If fso.FileExists(bookPath) = False Then
     WScript.StdEr.WriteLine "File does not exists: " & fso.GetFileName(bookPath) 
     WScript.Quit(10)

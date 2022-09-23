@@ -19,6 +19,12 @@ Else
     FunctionName = "Module1.Test4"
 End If
 
+'' debug output information
+DebugWriteLine "################", WScript.ScriptName
+DebugWriteLine "bookPath", bookPath
+DebugWriteLine "FunctionName", FunctionName
+
+
 '' from vbsCommon.vbs
 Call OpenExcelFile(bookPath)
 
@@ -36,6 +42,10 @@ objWshShell.AppActivate myWorkBook.Name, True
 '' run functionName on myWorkBook
 Dim ret
 ret = objExcel.Run(myWorkBook.Name & "!" & FunctionName)
+' if run Function return value
+'' and output the value, stdout
+DebugWriteLine "Return Value:", CStr(ret)
+DebugWriteLine "If Return Value:", "out the value to stdout"
 WScript.StdOut.WriteLine ret
 WScript.Quit(0)
 

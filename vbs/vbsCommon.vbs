@@ -1,27 +1,6 @@
 Option Explicit
 
-''test
-''TestFileOpen
-''CloseExcelFile "macrotest.xlsm"
-
-'' for debug
-Function TestFileOpen()
-    WScript.StdOut.WriteLine "Test run vbs"
-    Dim fso
-    Set fso = createObject("Scripting.FileSystemObject")
-    Dim projectRoot
-    projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
-
-    Dim bookPath
-    If WScript.Arguments.Count = 1 Then
-        bookPath = WScript.Arguments(0)
-    Else
-        bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
-    End If
-    OpenExcelFile bookPath
-End Function
-
-Function OpenExcelFile(bookPath)
+Sub OpenExcelFile(bookPath)
   '' is objExcel running?
   Dim objExcel
   Dim IsRunExcel
@@ -88,15 +67,15 @@ Function OpenExcelFile(bookPath)
   If Err.Number <> 0 OR myWorkBook Is Nothing Then
     WScript.StdErr.WriteLine "Can not Get Excel Book."
     Set objExcel = Nothing
-    WScript.Quit(Err.Number)
+    WScript.Quit(100)
   End If
   
   Set objExcel = Nothing
   On Error Goto 0
-End Function
+End Sub
 
 
-Function CloseExcelFile(bookName)
+Sub CloseExcelFile(bookName)
   '' is objExcel running?
   Dim objExcel
   Dim IsRunExcel
@@ -104,24 +83,31 @@ Function CloseExcelFile(bookName)
   Set objExcel = GetObject(,"Excel.Application")
   If objExcel Is Nothing Then
       DebugWriteLine "Err", Err.Description
-      Exit Function
+      WScript.Quit(100)
   End If
   
   If Err.Number <> 0 Then
+      DebugWriteLine "Err", Err.Description
       WScript.Quit(Err.Number)
   End If
   On Error Goto 0
 
+  On Error Resume Next
   Dim wb, IsOpenFile
   IsOpenFile = False
   For Each wb in objExcel.Workbooks
     If LCase(wb.Name) = LCase(bookName) Then    
       IsOpenFile = True
-      wb.Close()
+      wb.Close False
       Exit For
     End if
   Next
-End Function
+
+  If Err.Number <> 0 Then
+      DebugWriteLine "Err", Err.Description
+      WScript.Quit(Err.Number)
+  End If  
+End Sub
 
 ''for debug
 ''DeleteFilesInFolder "C:\projects\toramame-hub\xy\xlsms\src_macroTest.xlsm"

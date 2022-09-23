@@ -14,11 +14,16 @@ If WScript.Arguments.Count = 1 Then
   bookPath = WScript.Arguments(0)
 Else
   '' for debug, run with no arguments
-  bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm1")
+  bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
 End If
 
 Dim bookName
 bookName = fso.GetFileName(bookPath)
+
+'' debug output information
+DebugWriteLine "################", WScript.ScriptName
+DebugWriteLine "bookPath", bookPath
+
 
 '' open the book or attach the book
 On Error Resume Next

@@ -34,10 +34,17 @@ if moduleFolderPath = "" Then
   moduleFolderPath = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath) 
 End If
 
+'' debug output information
+DebugWriteLine "################", WScript.ScriptName
+DebugWriteLine "bookPath", bookPath
+DebugWriteLine "modulePath", modulePath
+DebugWriteLine "moduleFolderPath", moduleFolderPath
+
 IF fso.FolderExists(moduleFolderPath) = False Then
     WScript.StdErr.WriteLine ("No src Folder: " & moduleFolderPath)
     WScript.Quit(10)
 End If
+
 
 
 '' 
