@@ -3,17 +3,18 @@ Option Explicit
 '' load function
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 '' get book path
 Dim projectRoot
-projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
+projectRoot = GetProjectRoot(fso)
+
 Dim bookPath
 If WScript.Arguments.Count = 1 Then
   bookPath = WScript.Arguments(0)
 Else
   '' for debug, run with no arguments
-  bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
+  bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm1")
 End If
 
 Dim bookName
@@ -21,7 +22,7 @@ bookName = fso.GetFileName(bookPath)
 
 '' open the book or attach the book
 On Error Resume Next
-'' from startExcelOpen.vbs
+'' from vbsCommon.vbs
 OpenExcelFile bookPath
 
 Dim book
@@ -31,7 +32,6 @@ Set objExcel = book.Application
 
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine ("Can not Open: " & bookName & " : " & bookPath)
-    book.Close
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0

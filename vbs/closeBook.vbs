@@ -3,7 +3,7 @@ Option Explicit
 '' load external vbs.
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs", 1).ReadAll()
 
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
@@ -23,10 +23,8 @@ DebugWriteLine "################ start", WScript.ScriptName
 DebugWriteLine "bookName", bookName
 DebugWriteLine "bookPath", bookPath
 
-'On Error Resume Next
-Dim r
+On Error Resume Next
 CloseExcelFile bookName
-DebugWriteLine "----------------r", r
 
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not close excel."

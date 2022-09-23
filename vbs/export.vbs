@@ -6,7 +6,7 @@ Option Explicit
 '' load external vbs.
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 '' get gook path
 Dim projectRoot
@@ -97,7 +97,7 @@ If Err.Number <> 0 Then
 End If
 On Error Goto 0
 
-'' from startExcelOpen.vbs 
+'' from vbsCommon.vbs 
 On Error Resume Next
 OpenExcelFile bookPath
 

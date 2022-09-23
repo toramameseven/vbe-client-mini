@@ -1,12 +1,11 @@
 Option Explicit
-
-'' this vbs is modified from below.
-'' https://qiita.com/jinoji/items/23099771f78401bf0d34
+'' get count of modules in a vbe project
+''
 
 '' load external vbs.
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 '' get gook path
 Dim projectRoot
@@ -27,7 +26,7 @@ End If
 Dim dirModules
 dirModules = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath)
 
-'' from startExcelOpen.vbs
+'' from vbsCommon.vbs
 OpenExcelFile bookPath
 
 Dim book
@@ -71,7 +70,6 @@ If Err.Number <> 0 Then
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
-
 
 Set book = Nothing
 Set objExcel = Nothing

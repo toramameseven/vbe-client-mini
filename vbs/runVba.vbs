@@ -2,7 +2,7 @@ Option Explicit
 
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 Dim projectRoot
 projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
@@ -19,7 +19,7 @@ Else
     FunctionName = "Module1.Test4"
 End If
 
-'' from startExcelOpen.vbs
+'' from vbsCommon.vbs
 Call OpenExcelFile(bookPath)
 
 '' get book instance

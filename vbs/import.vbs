@@ -3,7 +3,7 @@ Option Explicit
 '' load function
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
-Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\startExcelOpen.vbs").ReadAll()
+Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 '' get project root
 Dim projectRoot
@@ -43,7 +43,7 @@ End If
 '' 
 On Error Resume Next
 
-'' from startExcelOpen.vbs
+'' from vbsCommon.vbs
 OpenExcelFile bookPath
 
 Dim book

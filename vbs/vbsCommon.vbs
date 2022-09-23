@@ -96,14 +96,15 @@ Function OpenExcelFile(bookPath)
 End Function
 
 
-Sub CloseExcelFile(bookName)
+Function CloseExcelFile(bookName)
   '' is objExcel running?
   Dim objExcel
   Dim IsRunExcel
   On Error Resume Next
   Set objExcel = GetObject(,"Excel.Application")
   If objExcel Is Nothing Then
-      WScript.Quit(0)
+      DebugWriteLine "Err", Err.Description
+      Exit Function
   End If
   
   If Err.Number <> 0 Then
@@ -120,7 +121,7 @@ Sub CloseExcelFile(bookName)
       Exit For
     End if
   Next
-End Sub
+End Function
 
 ''for debug
 ''DeleteFilesInFolder "C:\projects\toramame-hub\xy\xlsms\src_macroTest.xlsm"
@@ -156,6 +157,10 @@ Sub DebugWriteLine(title, value)
     End if
     WScript.StdOut.WriteLine "VBS::    " & outTitle & " : " & outValue
 End Sub
+
+Function GetProjectRoot(fso)
+  GetProjectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
+End Function
 
 
 
