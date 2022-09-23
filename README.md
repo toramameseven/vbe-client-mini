@@ -179,6 +179,11 @@ We think there's probably a way to easily extend it without forking.
 
 ## Release Notes
 
+0.0.5 test release.
+
+* Add Some features for checking modification.
+* Some fixes
+
 0.0.4 test release.
 
 * Verify logic is fail. When VBA engine import modules, the case conversion and whitespace conversions occur.
