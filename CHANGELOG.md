@@ -5,14 +5,19 @@ All notable changes to the "vbecm" extension will be documented in this file.
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
+
+
+## [0.0.5] - 2022-09-23
 ### Added
-- When vbecm exports modules, vbecm exports modules to a .vbe folder. 
-  Then vbecm copes to a src folder and a .base folder form the .vbe folder.
+- Some features for checking modification.
+
+### Fixed
+- Some fixes
 
 
 ## [0.0.4] - 2022-09-04
 ### Changed
-* Some titles of context menu are changed.
+- Some titles of context menu are changed.
 
 ### Fixed
 - Verify logic is fail. When VBA engine import modules, the case conversion and whitespace conversions occur.

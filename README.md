@@ -15,22 +15,33 @@ This extension thinks Excel as Excel Server.
 
 before use this extension, you must back up your xlsm or xlam file.
 
-### explorer context menu
+### Explorer context menu for an xlsm and an xlam
 
-* Export vba modules form a xlsm file to a folder.
+* Export all VBA modules
+  * Export vba modules form a xlsm file to a folder.
   * select a xlsm file in the explorer, and right click, and select export.
   you can find a Src_[xxx.xlsm] folder at the same folder.
-* Import vba modules to a xlsm file.
+* Import all VBA modules
+  * Import vba modules to a xlsm file.
   * you can import modules from a src_file.xlsm folder.
 * compile VBA
-  vbecm can not detect compile, so please check on the VBE.
-* Export frx modules
+  * Do compile.
+  * vbecm can not detect complete to compile, so please check on the VBE.
+* Export only frx modules
+  * Export frx modules
   * You can not know frx is modified or not.  If you modified a frm on the vscode,
     you can export only frx files.
-* Push all modules form a Src_[xxx.xlsm] folder
-  * you can push all modules in the source folder to the excel book.
 
-### explorer DIFF:
+### Explorer context menu for a Src_[xxx.xlsm] folder
+
+* Push All Vba modules
+  * Push all modules form a Src_[xxx.xlsm] folder
+  * you can push all modules in the source folder to the excel book.
+* Check modified
+  * Check modification among srcXXX, .vbe and .base.
+  * The result is shown at Explore Diff
+
+### Explorer context menu for DIFF:
 
 Modified modules are shown in the DIFF.
 
@@ -50,15 +61,25 @@ Vbecm checks the modification between the src and vbe folder.
 
 You can click to compare the module in base and the module in the vbe.
 
-You can right click to resolve the conflicting.
+At first you right click to diff between vbe and src.
+And Edit the module in the src.
+And right click to resolve the conflicting. 
+The The resolve command is to copy vbe to base.
+
+The resolve command is very confused. Sorry.
+
 
 ### editor context menu
 
-* Push vba module to a xlsm file on an editor.
+* Push VBA module
+  * Push vba module to a xlsm file on an editor.
   * Selected module is imported to a xlsm file.
-* run Sub() function on a editor.
+* Run Sub function
+  * run Sub() function on a editor.
   * select a sub XXX() line, and right click, and select run.
-* Pull selected module form xlsm file.
+* Pull VBA module
+  * Pull selected module form xlsm file.
+  * If you modified the module, vbe overwrites the modules in the src with vbe
 
 
 ### Folders
@@ -149,6 +170,12 @@ When you use an xlam file, vbecm add a book to the excel instance.
 
 When you import a frm module, you find a extra line added.
 vbecm will delete the line.
+
+### Diff algorism
+we are using the dir-compare and we are very grateful to be able to use it.
+https://github.com/gliviu/dir-compare
+And we want the option IGNORE CONTENT CASE, we fork and add some modification.
+We think there's probably a way to easily extend it without forking.
 
 ## Release Notes
 
