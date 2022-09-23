@@ -167,7 +167,7 @@ export async function importModules(
 }
 
 export async function exportFrxModules(pathBook: string) {
-  if (!fileExists(pathBook)) {
+  if (!(await fileExists(pathBook))) {
     throw Error(`Excel file does not exist.: ${pathBook}`);
   }
 
@@ -194,7 +194,7 @@ export async function exportFrxModules(pathBook: string) {
 
 export async function vbaSubRun(bookPath: string, modulePath: string, funcName: string) {
   // excel file path
-  if (!fileExists(bookPath)) {
+  if (!(await fileExists(bookPath))) {
     throw Error(`Excel file does not exist to run.: ${modulePath}`);
   }
 
@@ -596,14 +596,14 @@ export async function removeModuleSync(pathBook: string, modulePath: string) {
   await fse.promises.rm(vbePath, { force: true });
 }
 
-type RunVbs = { err: string; out: string; retValue: string; status: number | boolean | null };
+type RunVbs = { err: string; out: string; retValue: string; status: number | null };
 function runVbs(script: string, param: string[]): RunVbs {
   try {
     const rootFolder = path.dirname(__dirname);
     const vbsPath = path.resolve(rootFolder, 'vbs');
     const scriptPath = path.resolve(vbsPath, script);
 
-    const vbs = spawnSync('cscript.exe', ['//Nologo', scriptPath, ...param]);
+    const vbs = spawnSync('cscript.exe', ['//Nologo', scriptPath, ...param], { timeout: 60000 });
     const err = s2u(vbs.stderr);
     const out = s2u(vbs.stdout);
     const retValue = out.split('\r\n').slice(-2)[0];

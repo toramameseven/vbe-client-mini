@@ -6,6 +6,7 @@ import * as vbs from './vbsModule';
 import * as vbecmCommon from './vbecmCommon';
 import { DiffFileInfo, FileDiff } from './diffFiles';
 import { showInformationMessage, showErrorMessage, showWarningMessage } from './vbecmCommon';
+import { vbeOutput } from './vbeOutput';
 
 const STRING_EMPTY = '';
 
@@ -149,10 +150,12 @@ export async function handlerVbaRunFromEditor(
   edit: vscode.TextEditorEdit,
   uriModule: vscode.Uri
 ) {
+  displayMenus(false);
   // excel file path
   const bookPath = await getExcelPathFromModule(uriModule);
   if (bookPath === undefined) {
     showWarningMessage(uriModule.fsPath + ' is not a VBE project file.');
+    displayMenus(true);
     return;
   }
 
@@ -162,6 +165,7 @@ export async function handlerVbaRunFromEditor(
   const funcName = vbaSub !== null && vbaSub.length === 2 && vbaSub[1];
   if (funcName === false) {
     showErrorMessage('Error run. No sub name.');
+    displayMenus(true);
     return;
   }
 
@@ -203,10 +207,11 @@ export async function handlerCommitAllModuleFromFolder(uriFolder: vscode.Uri) {
   }
 }
 
-export async function handlerCheckModifiedOnFolder(uriFolder: vscode.Uri) {
+export async function handlerCheckModifiedOnFolder(uri: vscode.Uri) {
   displayMenus(false);
   try {
-    const bookPath = await getExcelPathSrcFolder(uriFolder);
+    const bookPathFromModule = await getExcelPathFromVbeModule(uri);
+    const bookPath = bookPathFromModule || (await getExcelPathSrcFolder(uri));
     await vbs.updateModification(bookPath);
   } catch (e) {
     showErrorMessage('Error CheckModified.');

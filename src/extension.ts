@@ -12,7 +12,7 @@ export const vbeReadOnlyDocumentProvider = new vbecmCommon.VbecmTextDocumentCont
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  console.log('extension "vbe-client-mini" is now active!');
+  console.log('extension "vbe-client-mini" is now start!');
 
   // add status bar
   context.subscriptions.push(statusBar.statusBarVba);
@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('book.exportFrx', handler.handlerUpdateModificationOnFolder)
+    vscode.commands.registerCommand('book.exportFrx', handler.handlerExportFrxModulesFromBook)
   );
 
   // commit all module from folder
@@ -101,6 +101,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('vbeDiffView.diffVbeSrc', (resource) =>
       handler.handlerDiffSrcToVbe(resource)
     )
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument((event) => {
+      //vbeOutput.appendLine(`onDidSaveTextDocument: ${event.fileName}`);
+      handler.handlerCheckModifiedOnFolder(event.uri);
+    })
   );
 
   displayMenus(true);

@@ -164,17 +164,17 @@
 			],
 			"editor/context": [
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.run",
 					"group": "myGroup@1"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand &&  isWindows",
 					"command": "editor.commit",
 					"group": "myGroup@2"
 				},
 				{
-					"when": "resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.pullModule",
 					"group": "myGroup@3"
 				}
@@ -203,15 +203,17 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
+		"pretest-es": "npm run esbuild-nomap && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
 		"do-test": "node ./out/runTest.js",
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-nomap": "npm run esbuild-base",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
 		"test-compile": "tsc -p ./",
-		"prepackage": "npm run pretest",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"prepackage": "npm run pretest-es",
 		"package": "vsce package --target win32-x64"
 	},
 	"devDependencies": {
@@ -241,9 +243,7 @@
 		"chai": "^4.3.6",
 		"dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
 		"fs-extra": "^10.1.0",
-		"fstream": "^1.0.12",
 		"iconv-lite": "^0.6.3",
-		"tar": "^6.1.11",
 		"uuid": "^9.0.0"
 	},
 	"license": "MIT",

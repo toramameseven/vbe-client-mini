@@ -127,11 +127,3 @@ function getHourMinute() {
     date.getMinutes().toString().padStart(2, '0');
   return dateString;
 }
-
-// function setReadOnly(pathFile: string, isReadOnly: boolean = true){
-//   const { err, status } = runVbs('setReadOnly.vbs', [pathFile, isReadOnly ? '1' : '0']);
-//   if (status !== 0 || err) {
-//     const error = Error(err);
-//     throw (error);
-//   }
-// }

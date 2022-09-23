@@ -5,7 +5,8 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "watch",
+			"script": "esbuild",
+			//"script": "watch",
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"presentation": {
