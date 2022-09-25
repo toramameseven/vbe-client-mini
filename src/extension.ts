@@ -3,7 +3,7 @@
 import path = require('path');
 import * as vscode from 'vscode';
 import * as statusBar from './statusBar';
-import { vbeOutput } from './vbeOutput';
+import * as VbeOutput from './vbeOutput';
 import * as handler from './handlers';
 import * as vbecmCommon from './vbecmCommon';
 
@@ -106,7 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
       //vbeOutput.appendLine(`onDidSaveTextDocument: ${event.fileName}`);
-      handler.handlerCheckModifiedOnFolder(event.uri);
+      handler.handlerCheckModifiedOnSave(event.uri);
     })
   );
 
@@ -116,8 +116,8 @@ export function activate(context: vscode.ExtensionContext) {
   statusBar.updateStatusBarItem(false);
 
   //log
-  vbeOutput.show(false);
-  vbeOutput.appendLine('initialize output');
+  VbeOutput.vbeOutput.show(false);
+  VbeOutput.showInfo('vbecm extension start');
 }
 
 //End ------------------------------------------------------------------------

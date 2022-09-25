@@ -65,6 +65,10 @@ If Err.Number <> 0 Then
 End If
 On Error Goto 0
 
+'' running check
+call TestRunningVba(objExcel)
+
+
 On Error Resume Next
 '' delete modules form xlsm
 

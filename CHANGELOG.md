@@ -6,6 +6,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+- Options: Automatically update modification. default false.
+  For Automatically update modification, and feel slow operation.
+
+### Changed
+- The output tab name is changed to vbecm from myOutput.
+
+### Fixed
+- when a vba is running, vbecm stops to access to an excel book. 
+  vbecm tests if a continue command and a pause command are enabled in the VBE.
+
 
 ## [0.0.5] - 2022-09-23
 ### Added

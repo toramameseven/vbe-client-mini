@@ -19,11 +19,11 @@ export const STRING_EMPTY = '';
 
 export type TestConfirm = {
   (
-    base: string,
-    src: string,
-    vbe: string,
-    diffTitle: 'src' | 'vbe',
-    moduleFileNames?: string[]
+    baseDir: string,
+    srcDir: string,
+    vbeDir: string,
+    compareTo: 'src' | 'vbe',
+    moduleFileNames: string[]
   ): Promise<boolean>;
 };
 
@@ -46,13 +46,13 @@ export function getVbecmDirs(bookPath: string, suffix: string = STRING_EMPTY) {
 
 export async function exportModulesAndSynchronize(
   pathBook: string,
-  moduleFineNameOrPath: string = STRING_EMPTY,
+  moduleFileNameOrPath: string = STRING_EMPTY,
   testConfirm?: TestConfirm
 ): Promise<boolean | undefined> {
   const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'exportModulesAndSynchronize');
 
   // get base name
-  const moduleFileName = path.basename(moduleFineNameOrPath);
+  const moduleFileName = path.basename(moduleFileNameOrPath);
 
   // test already exported
   const isExistSrc = await dirExists(srcDir);
@@ -127,7 +127,9 @@ export async function importModules(
   const existBase = await dirExists(baseDir);
   const isDefinedTestFunc = !!testConfirm;
   const isConfirm =
-    existBase && isDefinedTestFunc && (await testConfirm(baseDir, srcDir, vbeDir, 'vbe'));
+    existBase &&
+    isDefinedTestFunc &&
+    (await testConfirm(baseDir, srcDir, vbeDir, 'vbe', [moduleFileName]));
   const isGoForward = !isDefinedTestFunc || !existBase || isConfirm;
   if (isGoForward === false) {
     return;
@@ -149,12 +151,10 @@ export async function importModules(
     if (!successImport) {
       await importModuleSync(pathBook, STRING_EMPTY, true);
       // for recovery not update modules, so return
-      vscode.window.showWarningMessage('Success recover!!');
       return false;
     }
   } catch (e) {
-    vscode.window.showErrorMessage('Fail recover!!');
-    throw e;
+    throw Error('Fail recover!!');
   }
 
   try {
@@ -248,7 +248,7 @@ export async function comparePathAndGo(
   vbe: string,
   diffTo: 'src' | 'vbe',
   confirmMessage: string,
-  moduleFilePaths?: string[]
+  moduleFilePaths: string[]
 ) {
   const moduleFileName = moduleFilePaths ? path.basename(moduleFilePaths[0]) : STRING_EMPTY;
   const pathToCompare = (pPath: string) =>
@@ -261,13 +261,15 @@ export async function comparePathAndGo(
   const r = comparePath(basePath, diffTo === 'vbe' ? vbePath : srcPath);
 
   if (r.differences > 0) {
-    const ans = await vscode.window.showInformationMessage(
-      confirmMessage,
-      { modal: true },
-      { title: 'No', isCloseAffordance: true, dialogValue: false },
-      { title: 'Yes', isCloseAffordance: false, dialogValue: true }
-    );
-    return ans?.dialogValue ?? false;
+    // const ans = await vscode.window.showInformationMessage(
+    //   confirmMessage,
+    //   { modal: true },
+    //   { title: 'No', isCloseAffordance: true, dialogValue: false },
+    //   { title: 'Yes', isCloseAffordance: false, dialogValue: true }
+    // );
+    // return ans?.dialogValue ?? false;
+    const ans = await modalDialogShow(confirmMessage);
+    return ans;
   }
   return true;
 }
@@ -358,10 +360,6 @@ export async function deleteModulesInFolder(pathSrc: string) {
   }
 }
 
-export async function updateModification(bookPath?: string) {
-  await fileDiffProvider.updateModification(bookPath);
-}
-
 export async function compareModules(pathBook: string) {
   const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'compareModules');
 
@@ -428,7 +426,6 @@ export async function resolveVbeConflicting(
     r && copyModuleSync(moduleFileName, vbeDir, baseDir);
     r && copyModuleSync(moduleFileName, vbeDir, srcDir);
   }
-  await updateModification();
 }
 
 function copyModuleSync(moduleFile: string, fromDir: string, toDir: string) {
@@ -485,7 +482,6 @@ async function createVirtualModule(uriModule: vscode.Uri) {
   const uri = vscode.Uri.parse('vbecm:' + uriModule.fsPath);
   const doc = await vscode.workspace.openTextDocument(uri); // calls back into the provider
   vbeReadOnlyDocumentProvider.refresh(uri);
-  //await vscode.window.showTextDocument(doc, { preview: false });
   return doc.uri;
 }
 
@@ -494,20 +490,10 @@ async function exportModuleAsync(
   pathToExport: string,
   moduleFileNameOrPath: string
 ) {
-  // export modules
-  const isSheet = 'True';
-  const isForm = 'True';
-
   // delete file then export
   const moduleFileName = path.basename(moduleFileNameOrPath);
   moduleFileName === STRING_EMPTY && (await deleteModulesInFolder(pathToExport));
-  const { err, status } = runVbs('export.vbs', [
-    bookPath,
-    pathToExport,
-    moduleFileName,
-    isSheet,
-    isForm,
-  ]);
+  const { err, status } = runVbs('export.vbs', [bookPath, pathToExport, moduleFileName]);
   if (status !== 0 || err) {
     const error = new Error(err);
     throw error;
@@ -548,8 +534,7 @@ async function importModuleSync(
   // do import
   const { err, status } = runVbs('import.vbs', [pathBook, modulePath, importDirFrom]);
   if (status !== 0 || err) {
-    const error = Error(err);
-    throw error;
+    throw Error(err);
   }
 
   if (isRecovery) {
@@ -568,12 +553,9 @@ async function importModuleSync(
     await exportModuleAsync(pathBook, vbeDir, moduleFileName);
     const r = comparePath(srcPath, vbePath);
     if (r.same === false) {
-      vscode.window.showWarningMessage(
-        'May be Ok, some files are format in VBE engine. Case or Space.'
-      );
+      throw Error('Import verify Error!!');
     }
   } catch (error) {
-    console.log(error);
     throw error;
   }
 }

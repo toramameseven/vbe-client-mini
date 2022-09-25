@@ -4,22 +4,37 @@ import { TextEditor } from 'vscode';
 import * as stBar from './statusBar';
 import * as vbs from './vbsModule';
 import * as vbecmCommon from './vbecmCommon';
-import { DiffFileInfo, FileDiff } from './diffFiles';
-import { showInformationMessage, showErrorMessage, showWarningMessage } from './vbecmCommon';
-import { vbeOutput } from './vbeOutput';
+import { DiffFileInfo, FileDiff, fileDiffProvider } from './diffFiles';
+import * as vbeOutput from './vbeOutput';
+//import { vbeOutput.showInfo, vbeOutput.showError, vbeOutput.showWarn } from './vbecmCommon';
+//import { vbeOutput } from './vbeOutput';
 
 const STRING_EMPTY = '';
 
 const testAndConfirm =
   (message: string) =>
-  async (baseDir: string, srcDir: string, targetDir: string, compareTo: 'src' | 'vbe') => {
-    const ans = await vbs.comparePathAndGo(baseDir, srcDir, targetDir, compareTo, message);
+  async (
+    baseDir: string,
+    srcDir: string,
+    vbeDir: string,
+    compareTo: 'src' | 'vbe',
+    moduleFileNames: string[]
+  ) => {
+    const ans = await vbs.comparePathAndGo(
+      baseDir,
+      srcDir,
+      vbeDir,
+      compareTo,
+      message,
+      moduleFileNames
+    );
     return ans;
   };
 
 // for book
 // export all modules
 export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
+  vbeOutput.showInfo(`Start export modules: ${uriBook.fsPath}`);
   // function to test source is modified?
   const diffTestAndConfirm = testAndConfirm(
     'Some files modified in the Source folder. Do you export? Check vbe view.'
@@ -33,25 +48,26 @@ export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
       STRING_EMPTY,
       diffTestAndConfirm
     );
-    r && showInformationMessage('Success export modules.');
+    r && vbeOutput.showInfo('Success export modules.');
 
-    await vbs.updateModification(uriBook.fsPath);
+    await updateModificationBySystem(uriBook.fsPath);
   } catch (e) {
-    showErrorMessage('Error export modules.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error export modules.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus();
   }
 }
 
 export function handlerCompile(uriBook: vscode.Uri) {
+  vbeOutput.showInfo(`Start compile: ${uriBook.fsPath}`);
   displayMenus(false);
   try {
     vbs.compile(uriBook.fsPath);
-    showInformationMessage('Success compile, may be.');
+    vbeOutput.showInfo('Success compile, may be.');
   } catch (e) {
-    showInformationMessage('Error compile.');
-    showErrorMessage(e);
+    vbeOutput.showInfo('Error compile.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
@@ -59,6 +75,7 @@ export function handlerCompile(uriBook: vscode.Uri) {
 // import all modules
 export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
   // temp vs vase
+  vbeOutput.showInfo(`Start import modules: ${uriBook.fsPath}`);
   const diffTestAndConfirm = testAndConfirm(
     'Excel Vba may be modified. Do you import? Check vbe view.'
   );
@@ -66,25 +83,26 @@ export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
   displayMenus(false);
   try {
     const r = await vbs.importModules(uriBook.fsPath, STRING_EMPTY, diffTestAndConfirm);
-    r && showInformationMessage('Success import modules.');
+    r && vbeOutput.showInfo('Success import modules.');
 
-    await vbs.updateModification();
+    await updateModificationBySystem();
   } catch (e) {
-    showErrorMessage('Error import modules.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error import modules.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
 }
 
 export async function handlerExportFrxModulesFromBook(uriBook: vscode.Uri) {
+  vbeOutput.showInfo(`Start export frx modules: ${uriBook.fsPath}.`);
   displayMenus(false);
   try {
     await vbs.exportFrxModules(uriBook.fsPath);
-    showInformationMessage('Success export frx modules.');
+    vbeOutput.showInfo('Success export frx modules.');
   } catch (e) {
-    showErrorMessage('Error export frx modules.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error export frx modules.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus();
   }
@@ -93,10 +111,11 @@ export async function handlerExportFrxModulesFromBook(uriBook: vscode.Uri) {
 // for module
 // export a module
 export async function handlerPullModuleAsync(uriModule: vscode.Uri) {
+  vbeOutput.showInfo(`Start pull a module: ${uriModule.fsPath}`);
   // if the module file does not exist, return STRING_EMPTY
   const bookPath = await getExcelPathFromModule(uriModule);
   if (bookPath === undefined) {
-    showWarningMessage(uriModule.fsPath + ' is not a VBE project file.');
+    vbeOutput.showWarn(uriModule.fsPath + ' is not a VBE project file.');
     return;
   }
 
@@ -109,12 +128,12 @@ export async function handlerPullModuleAsync(uriModule: vscode.Uri) {
   try {
     const modulePath = uriModule.fsPath;
     const r = await vbs.exportModulesAndSynchronize(bookPath, modulePath, diffTestAndConfirm);
-    r && showInformationMessage('Success pull.');
+    r && vbeOutput.showInfo('Success pull.');
 
-    await vbs.updateModification();
+    await updateModificationBySystem();
   } catch (e) {
-    showErrorMessage('Error pull.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error pull.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
@@ -122,11 +141,11 @@ export async function handlerPullModuleAsync(uriModule: vscode.Uri) {
 
 // commit a module
 export async function handlerCommitModuleFromFile(uriModule: vscode.Uri) {
+  vbeOutput.showInfo(`Start push a module: ${uriModule.fsPath}`);
   const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push this file?');
-
   const bookPath = await getExcelPathFromModule(uriModule);
   if (bookPath === undefined) {
-    showWarningMessage(uriModule.fsPath + ' is not a VBE project file.');
+    vbeOutput.showWarn(uriModule.fsPath + ' is not a VBE project file.');
     return;
   }
 
@@ -134,12 +153,12 @@ export async function handlerCommitModuleFromFile(uriModule: vscode.Uri) {
   try {
     const modulePath = uriModule.fsPath;
     const r = await vbs.importModules(bookPath, modulePath, diffTestAndConfirm);
-    r && showInformationMessage('Success push.');
+    r && vbeOutput.showInfo('Success push.');
 
-    await vbs.updateModification();
+    await updateModificationBySystem();
   } catch (e) {
-    showErrorMessage('Error push.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error push.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
@@ -150,11 +169,12 @@ export async function handlerVbaRunFromEditor(
   edit: vscode.TextEditorEdit,
   uriModule: vscode.Uri
 ) {
+  vbeOutput.showInfo('Start run a sub function.');
   displayMenus(false);
   // excel file path
   const bookPath = await getExcelPathFromModule(uriModule);
   if (bookPath === undefined) {
-    showWarningMessage(uriModule.fsPath + ' is not a VBE project file.');
+    vbeOutput.showWarn(uriModule.fsPath + ' is not a VBE project file.');
     displayMenus(true);
     return;
   }
@@ -164,19 +184,21 @@ export async function handlerVbaRunFromEditor(
   const vbaSub = activeLine.match(/Sub (.*)\(\s*\)/i);
   const funcName = vbaSub !== null && vbaSub.length === 2 && vbaSub[1];
   if (funcName === false) {
-    showErrorMessage('Error run. No sub name.');
+    vbeOutput.showError('Error run. No sub name.');
     displayMenus(true);
     return;
   }
+
+  vbeOutput.showInfo(`The sub function is ${funcName}`, false);
 
   displayMenus(false);
   try {
     const modulePath = uriModule.fsPath;
     await vbs.vbaSubRun(bookPath, path.basename(modulePath), funcName);
-    showInformationMessage('Success run, may be.');
+    vbeOutput.showInfo('Success run, may be.');
   } catch (e) {
-    showErrorMessage('Error run.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error run.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
@@ -184,9 +206,10 @@ export async function handlerVbaRunFromEditor(
 
 // commit all modules for commit
 export async function handlerCommitAllModuleFromFolder(uriFolder: vscode.Uri) {
+  vbeOutput.showInfo(`Start push all. ${uriFolder.fsPath}`);
   const bookPath = await getExcelPathSrcFolder(uriFolder);
   if (bookPath === undefined) {
-    showWarningMessage(uriFolder.fsPath + ' is not a VBE project folder.');
+    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
     return;
   }
 
@@ -197,25 +220,43 @@ export async function handlerCommitAllModuleFromFolder(uriFolder: vscode.Uri) {
   displayMenus(false);
   try {
     const r = await vbs.importModules(bookPath, STRING_EMPTY, diffTestAndConfirm);
-    r && showInformationMessage('Success push all.');
-    await vbs.updateModification();
+    r && vbeOutput.showInfo('Success push all.');
+    await updateModificationBySystem();
   } catch (e) {
-    showErrorMessage('Error push all.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error push all.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus(true);
   }
 }
 
-export async function handlerCheckModifiedOnFolder(uri: vscode.Uri) {
+export async function handlerCheckModifiedOnSave(uri: vscode.Uri) {
+  vbeOutput.showInfo(`Start check modification on save: ${uri.fsPath}`, false);
   displayMenus(false);
   try {
     const bookPathFromModule = await getExcelPathFromVbeModule(uri);
     const bookPath = bookPathFromModule || (await getExcelPathSrcFolder(uri));
-    await vbs.updateModification(bookPath);
+    await updateModificationBySystem(bookPath);
+    vbeOutput.showInfo('Success check modification on save. if setting is on.', false);
   } catch (e) {
-    showErrorMessage('Error CheckModified.');
-    showErrorMessage(e);
+    vbeOutput.showError('Error CheckModified.');
+    vbeOutput.showError(e);
+  } finally {
+    displayMenus();
+  }
+}
+
+export async function handlerCheckModifiedOnFolder(uri: vscode.Uri) {
+  vbeOutput.showInfo(`Start check modification: ${uri.fsPath}`, false);
+  displayMenus(false);
+  try {
+    const bookPathFromModule = await getExcelPathFromVbeModule(uri);
+    const bookPath = bookPathFromModule || (await getExcelPathSrcFolder(uri));
+    await updateModificationForce(bookPath);
+    vbeOutput.showInfo('Success check modification', false);
+  } catch (e) {
+    vbeOutput.showError('Error CheckModified.');
+    vbeOutput.showError(e);
   } finally {
     displayMenus();
   }
@@ -223,12 +264,14 @@ export async function handlerCheckModifiedOnFolder(uri: vscode.Uri) {
 
 // vbe diff tree view
 export async function handlerUpdateModificationOnFolder() {
+  vbeOutput.showInfo(`Start check modification: refresh button.`, false);
   displayMenus(false);
   try {
-    await vbs.updateModification();
+    await updateModificationForce();
+    vbeOutput.showInfo('Success check modification', false);
   } catch (error) {
-    showErrorMessage('error update modification');
-    showErrorMessage(error);
+    vbeOutput.showError('error update modification');
+    vbeOutput.showError(error);
   } finally {
     displayMenus();
   }
@@ -237,7 +280,7 @@ export async function handlerUpdateModificationOnFolder() {
 export async function handlerCommitModuleFromVbeDiff(fileInfo: DiffFileInfo) {
   const bookPath = await getExcelPathFromModule(vscode.Uri.file(fileInfo.compareFilePath!));
   if (bookPath === undefined) {
-    showWarningMessage(fileInfo.moduleName + ' is not a VBE project file.');
+    vbeOutput.showWarn(fileInfo.moduleName + ' is not a VBE project file.');
     return;
   }
 
@@ -251,13 +294,14 @@ export async function handlerCommitModuleFromVbeDiff(fileInfo: DiffFileInfo) {
 }
 
 async function handlerCommitModuleFromVbeDiffRemove(bookPath: string, modulePath: string) {
+  displayMenus(false);
   try {
     await vbs.removeModuleSync(bookPath, modulePath);
-    await vbs.updateModification(bookPath);
-    showInformationMessage('Success push(remove module).');
+    await updateModificationBySystem(bookPath);
+    vbeOutput.showInfo('Success push(remove module).');
   } catch (error) {
-    showErrorMessage('error push(remove module)');
-    showErrorMessage(error);
+    vbeOutput.showError('error push(remove module)');
+    vbeOutput.showError(error);
   } finally {
     displayMenus();
   }
@@ -265,18 +309,22 @@ async function handlerCommitModuleFromVbeDiffRemove(bookPath: string, modulePath
 }
 
 export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo) {
+  vbeOutput.showInfo('Start Resolve Vbe Conflicting', false);
+
   const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
   if (bookPath === undefined) {
-    showWarningMessage(fileInfo.compareFilePath + ' is not a VBE project file.');
+    vbeOutput.showWarn(fileInfo.compareFilePath + ' is not a VBE project file.');
     return;
   }
 
   displayMenus(false);
   try {
     await vbs.resolveVbeConflicting(bookPath, fileInfo.moduleName!);
+    await updateModificationBySystem();
+    vbeOutput.showInfo('Success Resolve Vbe Conflicting', false);
   } catch (error) {
-    showErrorMessage('Error CheckModified.');
-    showErrorMessage(error);
+    vbeOutput.showError('Error CheckModified.');
+    vbeOutput.showError(error);
   } finally {
     displayMenus();
   }
@@ -289,7 +337,7 @@ export async function handlerDiffBaseTo(resource: DiffFileInfo): Promise<void> {
 export async function handlerDiffSrcToVbe(resource: DiffFileInfo): Promise<void> {
   const pathBook = await getExcelPathFromVbeModule(vscode.Uri.file(resource.compareFilePath!));
   if (pathBook === undefined) {
-    showWarningMessage(resource.compareFilePath + ' is not a VBE project file.');
+    vbeOutput.showWarn(resource.compareFilePath + ' is not a VBE project file.');
     return;
   }
   await vbs.diffSrcToVbe(resource, pathBook);
@@ -322,4 +370,15 @@ async function getExcelPathSrcFolder(uriSrcFolder: vscode.Uri) {
   const xlsPath = path.resolve(dirForBook, bookFileName);
   const isFile = await vbecmCommon.fileExists(xlsPath);
   return isFile ? xlsPath : undefined;
+}
+
+async function updateModificationBySystem(bookPath?: string) {
+  const isAutoRefreshDiff = vscode.workspace
+    .getConfiguration('vbecm')
+    .get<boolean>('AutoRefreshDiff');
+  isAutoRefreshDiff && (await updateModificationForce(bookPath));
+}
+
+async function updateModificationForce(bookPath?: string) {
+  await fileDiffProvider.updateModification(bookPath);
 }

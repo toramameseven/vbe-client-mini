@@ -139,7 +139,7 @@
 			"view/title": [
 				{
 					"command": "vbeDiffView.refreshModification",
-					"when": "view == vbeDiffView && isWindows",
+					"when": "view == vbeDiffView && vbecm.showVbsCommand && isWindows",
 					"group": "navigation@1"
 				},
 				{
@@ -183,10 +183,10 @@
 		"configuration": {
 			"title": "vbecm",
 			"properties": {
-				"vbecm.useSheetModule": {
+        "vbecm.AutoRefreshDiff": {
 					"type": "boolean",
-					"default": true,
-					"description": "Enable export sheet Modules(.sht.cls).Now always true.",
+					"default": false,
+					"description": "Automatically refresh diff information",
 					"order": 1
 				},
 				"vbecm.vbsEncode": {

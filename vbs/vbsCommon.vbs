@@ -130,7 +130,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    exit Sub
+    ''exit Sub
     Dim outTitle
     Dim outValue
     outTitle = title
@@ -147,6 +147,46 @@ End Sub
 Function GetProjectRoot(fso)
   GetProjectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
 End Function
+
+Sub TestRunningVba(objExcel)
+
+    on error resume Next
+    Dim ctrlPause
+    ''pause 189
+    Set ctrlPause = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 189)
+    If Err.Number <> 0 Or ctrlPause Is Nothing Then
+        WScript.StdErr.WriteLine ("Can not find pause command")
+        WScript.Quit(1001)
+    Else
+        If ctrlPause.Enabled = True Then
+          '' vba not running, go a head.
+        Else
+          '' now pause, so not enabled.
+          WScript.StdErr.WriteLine ("Can not pause. May be paused in VBE.")
+          WScript.Quit(1001)
+        End IF
+    End If
+    on error goto 0
+
+    '' test vba run or not
+    on error resume Next
+    Dim ctrlContinue
+    ''continue 186
+    Set ctrlContinue = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 186)
+    If Err.Number <> 0 Or ctrlContinue Is Nothing Then
+        WScript.StdErr.WriteLine ("Can not find continue command")
+        WScript.Quit(1001)
+    Else
+        If ctrlContinue.Enabled = True Then
+          '' vba not running, go a head.
+        Else
+          '' now pause, so not enabled.
+          WScript.StdErr.WriteLine ("Can not continue. May be running in VBE.")
+          WScript.Quit(1001)
+        End IF
+    End If
+    on error goto 0
+End Sub
 
 
 
