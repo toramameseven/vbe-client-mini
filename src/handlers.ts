@@ -6,8 +6,6 @@ import * as vbs from './vbsModule';
 import * as vbecmCommon from './vbecmCommon';
 import { DiffFileInfo, FileDiff, fileDiffProvider } from './diffFiles';
 import * as vbeOutput from './vbeOutput';
-//import { vbeOutput.showInfo, vbeOutput.showError, vbeOutput.showWarn } from './vbecmCommon';
-//import { vbeOutput } from './vbeOutput';
 
 const STRING_EMPTY = '';
 
@@ -158,6 +156,38 @@ export async function handlerCommitModuleFromFile(uriModule: vscode.Uri) {
     await updateModificationBySystem();
   } catch (e) {
     vbeOutput.showError('Error push.');
+    vbeOutput.showError(e);
+  } finally {
+    displayMenus(true);
+  }
+}
+
+export async function handlerGotoVbe(
+  textEditor: TextEditor,
+  edit: vscode.TextEditorEdit,
+  uriModule: vscode.Uri
+) {
+  displayMenus(false);
+  // excel file path
+  const bookPath = await getExcelPathFromModule(uriModule);
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(uriModule.fsPath + ' is not a VBE project file.');
+    displayMenus(true);
+    return;
+  }
+
+  // get module name and line of code
+  const activeLineNo = textEditor.selection.active.line;
+  const moduleFileName = path.basename(uriModule.fsPath);
+  const moduleName = moduleFileName.split('.')[0];
+  vbeOutput.showInfo(`Start goto vbe.: ${moduleName}, line: ${activeLineNo}`, false);
+  displayMenus(false);
+  try {
+    const modulePath = uriModule.fsPath;
+    await vbs.gotoVbe(bookPath, moduleName, activeLineNo);
+    vbeOutput.showInfo('Success goto vbe.', false);
+  } catch (e) {
+    vbeOutput.showError('Error goto vbe.');
     vbeOutput.showError(e);
   } finally {
     displayMenus(true);

@@ -68,6 +68,11 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('editor.commit', handler.handlerCommitModuleFromFile)
   );
 
+  // goto vbe
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand('editor.gotoVbe', handler.handlerGotoVbe)
+  );
+
   //  /////////////////////////////////  //////////////////////////////////////////////////
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -117,7 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   //log
   VbeOutput.vbeOutput.show(false);
-  VbeOutput.showInfo('vbecm extension start');
+  VbeOutput.showInfo('vbecm extension start', false);
 }
 
 //End ------------------------------------------------------------------------

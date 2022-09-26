@@ -22,7 +22,7 @@ function createMessage(message: string | unknown) {
   return 'create message error.';
 }
 
-export function showInfo(message: unknown, showNotification = true) {
+export function showInfo(message: unknown, showNotification = false) {
   const messageOut = `[Info  - ${new Date().toLocaleTimeString()}] ${createMessage(message)}`;
   vbeOutput.appendLine(messageOut);
   if (showNotification) {

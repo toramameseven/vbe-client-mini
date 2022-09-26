@@ -215,6 +215,23 @@ export async function vbaSubRun(bookPath: string, modulePath: string, funcName: 
   return retValue;
 }
 
+export async function gotoVbe(bookPath: string, moduleName: string, codeLineNo: number) {
+  // excel file path
+  if (!(await fileExists(bookPath))) {
+    throw Error(`Excel file does not exist to go.: ${bookPath}`);
+  }
+
+  const { err, status, retValue } = runVbs('selectModuleLine.vbs', [
+    bookPath,
+    moduleName,
+    codeLineNo.toString()
+  ]);
+  if (status !== 0 || err) {
+    throw Error(err);
+  }
+  return retValue;
+}
+
 export function compile(bookPath: string) {
   const { err, status } = runVbs('compile.vbs', [bookPath]);
   if (status !== 0 || err) {

@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -79,6 +79,10 @@
 			{
 				"command": "editor.pullModule",
 				"title": "Pull VBA module"
+			},
+			{
+				"command": "editor.gotoVbe",
+				"title": "Goto Vbe module"
 			},
 			{
 				"command": "vbeDiffView.refreshModification",
@@ -177,6 +181,11 @@
 					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.pullModule",
 					"group": "myGroup@3"
+				},
+				{
+					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"command": "editor.gotoVbe",
+					"group": "myGroup@4"
 				}
 			]
 		},
