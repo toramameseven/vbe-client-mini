@@ -9,6 +9,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 - Options: Automatically update modification. default false.
   For Automatically update modification, and feel slow operation.
+- Editor context menu: Goto Vbe module
+  Goto the module on the vbe form the editor you select.
 
 ### Changed
 - The output tab name is changed to vbecm from myOutput.
@@ -16,6 +18,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 - when a vba is running, vbecm stops to access to an excel book. 
   vbecm tests if a continue command and a pause command are enabled in the VBE.
+- Detect modification for no modification module. Fixed. #5
 
 
 ## [0.0.5] - 2022-09-23

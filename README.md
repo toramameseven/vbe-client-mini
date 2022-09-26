@@ -80,6 +80,9 @@ The resolve command is very confused. Sorry.
 * Pull VBA module
   * Pull selected module form xlsm file.
   * If you modified the module, vbe overwrites the modules in the src with vbe
+* Goto Vbe module
+  * Goto the code of module on the vbe form the editor you select.
+    It does not work for a workbook module.
 
 
 ### Folders
