@@ -182,9 +182,8 @@ We think there's probably a way to easily extend it without forking.
 
 ## Release Notes
 
-see change log
+[see change log](./CHANGELOG.md)
 
-./CHANGELOG.md
 
 
 
