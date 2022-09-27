@@ -44,8 +44,11 @@ On Error Goto 0
 '' compile project
 On Error Resume Next
 '' FindControl(type, id. ......)
+'' may be one module exists.
+objExcel.ActiveWorkbook.VBProject.VBComponents(1).Activate
 Dim ctrl
 Set ctrl = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 578)
+
 If Err.Number <> 0 Or ctrl Is Nothing Then
     WScript.StdErr.WriteLine ("Check objExcel Object Model Security")
 Else
