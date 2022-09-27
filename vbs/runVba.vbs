@@ -36,6 +36,7 @@ Set objExcel = myWorkBook.Application
 
 '' test vba run or not
 '' in running, stop(end) quit script
+call TestCompiled(objExcel)
 call TestRunningVba(objExcel)
 
 ' set Excel top view
