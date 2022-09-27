@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('book.exportFrx', handler.handlerExportFrxModulesFromBook)
   );
 
-  // commit all module from folder
+  // push all module from folder
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'srcFolder.commit-all',
@@ -49,9 +49,22 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // pull all module from folder
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'srcFolder.pull-all',
+      handler.handlerExportModulesFromFolder
+    )
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand('srcFolder.checkModified', handler.handlerCheckModifiedOnFolder)
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('srcFolder.compile', handler.handlerCompileFolder)
+  );
+
 
   //   --------------editor
   context.subscriptions.push(

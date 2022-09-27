@@ -65,8 +65,16 @@
 				"title": "Push All Vba modules"
 			},
 			{
+				"command": "srcFolder.pull-all",
+				"title": "Pull All Vba modules"
+			},
+			{
 				"command": "srcFolder.checkModified",
 				"title": "Check modified"
+			},
+			{
+				"command": "srcFolder.compile",
+				"title": "Compile Project"
 			},
 			{
 				"command": "editor.run",
@@ -136,8 +144,18 @@
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.checkModified",
+					"command": "srcFolder.pull-all",
 					"group": "myGroup@6"
+				},
+				{
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"command": "srcFolder.checkModified",
+					"group": "myGroup@7"
+				},
+				{
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"command": "srcFolder.compile",
+					"group": "myGroup@8"
 				}
 			],
 			"view/title": [

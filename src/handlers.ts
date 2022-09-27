@@ -31,6 +31,15 @@ const testAndConfirm =
 
 // for book
 // export all modules
+export async function handlerExportModulesFromFolder(uriFolder: vscode.Uri) {
+  const bookPath = await getExcelPathSrcFolder(uriFolder);
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
+    return;
+  }
+  await handlerExportModulesFromBook(vscode.Uri.file(bookPath));
+}
+
 export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
   vbeOutput.showInfo(`Start export modules: ${uriBook.fsPath}`);
   // function to test source is modified?
@@ -57,6 +66,16 @@ export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
   }
 }
 
+
+export async function handlerCompileFolder(uriFolder: vscode.Uri) {
+  const bookPath = await getExcelPathSrcFolder(uriFolder);
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
+    return;
+  }
+  await handlerCompile(vscode.Uri.file(bookPath));
+}
+
 export function handlerCompile(uriBook: vscode.Uri) {
   vbeOutput.showInfo(`Start compile: ${uriBook.fsPath}`);
   displayMenus(false);
@@ -70,6 +89,9 @@ export function handlerCompile(uriBook: vscode.Uri) {
     displayMenus(true);
   }
 }
+
+
+
 // import all modules
 export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
   // temp vs vase
