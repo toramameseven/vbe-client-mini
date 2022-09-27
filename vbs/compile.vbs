@@ -58,7 +58,13 @@ End If
 
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not compile VBA"
+    WScript.Quit(Err.Number)
 End if
+
+If ctrl.Enabled = True Then
+    WScript.StdErr.WriteLine "Can not compile VBA. May be a compile error!! Check VBE"
+    WScript.Quit(100)
+End IF
 
 WScript.Sleep 1000
 WScript.StdOut.WriteLine "Compile complete"
