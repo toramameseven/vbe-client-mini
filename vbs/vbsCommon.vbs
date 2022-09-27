@@ -148,6 +148,51 @@ Function GetProjectRoot(fso)
   GetProjectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
 End Function
 
+
+Sub OpenVbe(objExcel)
+  '' FindControl(type, id. ......)
+  '' open vbe
+  Dim ctrl
+  Set ctrl = objExcel.Application.CommandBars.FindControl(, 1695)
+  If Err.Number <> 0 Or ctrl Is Nothing Then
+      WScript.StdErr.WriteLine ("Check objExcel Object Model Security")
+      WScript.StdErr.WriteLine Err.Description
+  Else
+      If ctrl.Enabled = True Then
+          ctrl.Execute
+      Else
+          '' not enable
+      End IF
+  End If
+End Sub
+
+
+Sub TestCompiled(objExcel)
+
+    on error resume Next
+    Dim ctrlCompile
+    ''compile 578
+    Set ctrlCompile = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 578)
+    If Err.Number <> 0 Or ctrlCompile Is Nothing Then
+        WScript.StdErr.WriteLine ("Can not find compile command")
+        WScript.Quit(1001)
+    Else
+        If ctrlCompile.Enabled = True Then
+          ctrlCompile.Execute
+        Else
+          '' now compiled go ahead
+        End IF
+    End If
+
+    If ctrlCompile.Enabled = True Then
+      Call OpenVbe(objExcel)
+      WScript.StdErr.WriteLine "Can not compile VBA. May be a compile error!! Check VBE"
+      WScript.Quit(100)
+    End if
+
+    on error goto 0
+End Sub
+
 Sub TestRunningVba(objExcel)
 
     on error resume Next
@@ -162,7 +207,8 @@ Sub TestRunningVba(objExcel)
           '' vba not running, go a head.
         Else
           '' now pause, so not enabled.
-          WScript.StdErr.WriteLine ("Can not pause. May be paused in VBE.")
+          Call OpenVbe(objExcel)
+          WScript.StdErr.WriteLine ("Can not run. May be paused in VBE.")
           WScript.Quit(1001)
         End IF
     End If
@@ -181,7 +227,8 @@ Sub TestRunningVba(objExcel)
           '' vba not running, go a head.
         Else
           '' now pause, so not enabled.
-          WScript.StdErr.WriteLine ("Can not continue. May be running in VBE.")
+          Call OpenVbe(objExcel)
+          WScript.StdErr.WriteLine ("Can not run. May be running in VBE.")
           WScript.Quit(1001)
         End IF
     End If
