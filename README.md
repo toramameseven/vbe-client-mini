@@ -182,28 +182,9 @@ We think there's probably a way to easily extend it without forking.
 
 ## Release Notes
 
-0.0.5 test release.
+see change log
 
-* Add Some features for checking modification.
-* Some fixes
+./CHANGELOG.md
 
-0.0.4 test release.
-
-* Verify logic is fail. When VBA engine import modules, the case conversion and whitespace conversions occur.
-  So, sometimes the verify errors occur. Now vbecm does not check modules when you import modules.
-* Context menus is displayed when no vba modules is selected. Fix this.
-* Some titles of context menu are changed.
-
-0.0.3 test release.
-
-* When you commit a frm module, you fail to commit at 0.0.2. Fixed.
-
-0.0.2 test release.
-
-* When you run a sub functions that are in some modules, vbecm can not detect the module the function includes.
-  This version can detect the module you select.
-* Some features add.
-
-0.0.1 test release.
 
 
