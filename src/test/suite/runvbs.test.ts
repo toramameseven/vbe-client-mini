@@ -32,7 +32,7 @@ const commonTest = true;
 
 // export test
 describe('#vbsModules.exportModulesAndSyncronize', () => {
-  before('#Before exportModulesAndSyncronize', async function () {
+  before('#Before exportModulesAndSynchronize', async function () {
     this.timeout(60000);
 
     vbs.closeBook(bookPath);
