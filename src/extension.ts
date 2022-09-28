@@ -3,7 +3,7 @@
 import path = require('path');
 import * as vscode from 'vscode';
 import * as statusBar from './statusBar';
-import { vbeOutput } from './vbeOutput';
+import * as VbeOutput from './vbeOutput';
 import * as handler from './handlers';
 import * as vbecmCommon from './vbecmCommon';
 
@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('book.exportFrx', handler.handlerExportFrxModulesFromBook)
   );
 
-  // commit all module from folder
+  // push all module from folder
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'srcFolder.commit-all',
@@ -49,9 +49,22 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // pull all module from folder
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'srcFolder.pull-all',
+      handler.handlerExportModulesFromFolder
+    )
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand('srcFolder.checkModified', handler.handlerCheckModifiedOnFolder)
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('srcFolder.compile', handler.handlerCompileFolder)
+  );
+
 
   //   --------------editor
   context.subscriptions.push(
@@ -66,6 +79,11 @@ export function activate(context: vscode.ExtensionContext) {
   // commit form editor
   context.subscriptions.push(
     vscode.commands.registerCommand('editor.commit', handler.handlerCommitModuleFromFile)
+  );
+
+  // goto vbe
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand('editor.gotoVbe', handler.handlerGotoVbe)
   );
 
   //  /////////////////////////////////  //////////////////////////////////////////////////
@@ -105,8 +123,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
-      //vbeOutput.appendLine(`onDidSaveTextDocument: ${event.fileName}`);
-      handler.handlerCheckModifiedOnFolder(event.uri);
+      const extensions = ['.bas', '.frm', '.cls', '.frx'];
+      const extension = event.fileName.slice(-4).toLowerCase();
+      if (!extensions.includes(extension)) {
+        return;
+      }
+      handler.handlerCheckModifiedOnSave(event.uri);
     })
   );
 
@@ -116,8 +138,8 @@ export function activate(context: vscode.ExtensionContext) {
   statusBar.updateStatusBarItem(false);
 
   //log
-  vbeOutput.show(false);
-  vbeOutput.appendLine('initialize output');
+  VbeOutput.vbeOutput.show(false);
+  VbeOutput.showInfo('vbecm extension start', false);
 }
 
 //End ------------------------------------------------------------------------

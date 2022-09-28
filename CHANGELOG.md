@@ -2,9 +2,28 @@
 
 All notable changes to the "vbecm" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
 ## [Unreleased]
+
+
+## [0.0.6] - 2022-09-28
+
+### Added
+- Options: Automatically update modification. default false.
+  For Automatically update modification, and feel slow operation.
+- Editor context menu: Goto Vbe module
+  Goto the module on the vbe form the editor you select.
+- Source folder context menu:
+  - pull all modules
+  - compile vba
+
+### Changed
+- The output tab name is changed to vbecm from myOutput.
+
+### Fixed
+- when a vba is running, vbecm stops to access to an excel book. 
+  vbecm tests if a continue command and a pause command are enabled in the VBE.
+- Detect modification for no modification module. Fixed. #5
+- Sometime, vbecm can not detect the target for compile. Fixed.
 
 
 ## [0.0.5] - 2022-09-23
@@ -40,6 +59,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 
 <!-- 
+Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 ### Added
  for new features.
 ### Changed

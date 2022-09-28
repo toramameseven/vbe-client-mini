@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -65,8 +65,16 @@
 				"title": "Push All Vba modules"
 			},
 			{
+				"command": "srcFolder.pull-all",
+				"title": "Pull All Vba modules"
+			},
+			{
 				"command": "srcFolder.checkModified",
 				"title": "Check modified"
+			},
+			{
+				"command": "srcFolder.compile",
+				"title": "Compile Project"
 			},
 			{
 				"command": "editor.run",
@@ -79,6 +87,10 @@
 			{
 				"command": "editor.pullModule",
 				"title": "Pull VBA module"
+			},
+			{
+				"command": "editor.gotoVbe",
+				"title": "Goto Vbe module"
 			},
 			{
 				"command": "vbeDiffView.refreshModification",
@@ -132,14 +144,24 @@
 				},
 				{
 					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.checkModified",
+					"command": "srcFolder.pull-all",
 					"group": "myGroup@6"
+				},
+				{
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"command": "srcFolder.checkModified",
+					"group": "myGroup@7"
+				},
+				{
+					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+					"command": "srcFolder.compile",
+					"group": "myGroup@8"
 				}
 			],
 			"view/title": [
 				{
 					"command": "vbeDiffView.refreshModification",
-					"when": "view == vbeDiffView && isWindows",
+					"when": "view == vbeDiffView && vbecm.showVbsCommand && isWindows",
 					"group": "navigation@1"
 				},
 				{
@@ -177,16 +199,21 @@
 					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
 					"command": "editor.pullModule",
 					"group": "myGroup@3"
+				},
+				{
+					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+					"command": "editor.gotoVbe",
+					"group": "myGroup@4"
 				}
 			]
 		},
 		"configuration": {
 			"title": "vbecm",
 			"properties": {
-				"vbecm.useSheetModule": {
+        "vbecm.AutoRefreshDiff": {
 					"type": "boolean",
-					"default": true,
-					"description": "Enable export sheet Modules(.sht.cls).Now always true.",
+					"default": false,
+					"description": "Automatically refresh diff information",
 					"order": 1
 				},
 				"vbecm.vbsEncode": {

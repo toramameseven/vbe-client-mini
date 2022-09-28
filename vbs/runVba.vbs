@@ -34,10 +34,17 @@ Set myWorkBook = GetObject(bookPath)
 Dim objExcel
 Set objExcel = myWorkBook.Application
 
+'' test vba run or not
+'' in running, stop(end) quit script
+call TestCompiled(objExcel)
+call TestRunningVba(objExcel)
+
 ' set Excel top view
 Dim objWshShell
 Set objWshShell = WScript.CreateObject("WScript.Shell")
 objWshShell.AppActivate myWorkBook.Name, True
+
+
 
 '' run functionName on myWorkBook
 Dim ret

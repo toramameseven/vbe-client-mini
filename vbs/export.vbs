@@ -18,8 +18,6 @@ Dim bookPath
 '' module include sht.cls
 Dim moduleFileName
 Dim pathToExport
-Dim isExportSheet
-Dim isExportForm
 
 '' default parameter
 bookPath = ""
@@ -27,9 +25,8 @@ bookPath = ""
 pathToExport = ""
 '' if empty all module, .cls, .frm, .sht.cls
 moduleFileName = ""
-isExportSheet = True
-isExportForm = True
 
+'' get arguments
 If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
 ElseIf WScript.Arguments.Count = 2 Then
@@ -39,30 +36,18 @@ ElseIf WScript.Arguments.Count = 3 Then
     bookPath = WScript.Arguments(0)
     pathToExport = WScript.Arguments(1)
     moduleFileName = WScript.Arguments(2)
-ElseIf WScript.Arguments.Count = 5 Then
-    bookPath = WScript.Arguments(0)
-    pathToExport = WScript.Arguments(1)
-    moduleFileName = WScript.Arguments(2)
-    isExportSheet = WScript.Arguments(3)
-    isExportForm =  WScript.Arguments(4)
 Else
     '' for debug
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
     pathToExport = fso.GetParentFolderName(bookPath) & "\src_" & "XXXXXXXXXXXXXXXXXXX"
-    ''moduleFileName = "sheet1.sht.cls"
+    moduleFileName = "sheet1.sht.cls"
 End If
-
-'' now all export
-isExportSheet = True
-isExportForm = True
 
 '' debug output information
 DebugWriteLine "################", WScript.ScriptName
 DebugWriteLine "bookPath", bookPath
 DebugWriteLine "pathToExport", pathToExport
 DebugWriteLine "moduleFileName", moduleFileName
-DebugWriteLine "isExportSheet", isExportSheet
-DebugWriteLine "isExportForm", isExportForm
 
 '' test if bookPath exists
 If fso.FileExists(bookPath) = False Then
@@ -79,49 +64,78 @@ Else
   dirModules = pathToExport
 End If
 CreateFolder dirModules
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not Create folders"
-    WScript.Quit(Err.Number)
-End If
-On Error Goto 0
+call ErrorHandle("Can not Create folders", True)
 
-On Error Resume Next
+'' delete all modules or not
 If moduleFileName = "" Then
   '' clear folder
   DeleteFilesInFolder dirModules
 End if
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not delete module files."
-    WScript.StdErr.WriteLine Err.description
-    WScript.Quit(Err.Number)
-End If
-On Error Goto 0
+call ErrorHandle("Can not delete module files.", True)
 
 '' from vbsCommon.vbs 
-On Error Resume Next
 OpenExcelFile bookPath
-
 Dim book
 Set book = GetObject(bookPath)
 Dim objExcel 
 set objExcel = book.Application
 
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can Not Open Excel File."
-    WScript.Quit(Err.Number)
-End If
-On Error Goto 0
+call ErrorHandle("Can Not Open Excel File.", True)
+
 
 
 Dim vbComponent
-Dim TypeOfModule
 Dim VBComponents
 Set VBComponents = book.VBProject.VBComponents
 Dim sheetObjContents
 dim modulePath
 
-On Error Resume Next
-For Each vbComponent In VBComponents
+
+Dim VBComponentToExport
+
+If moduleFileName = "" Then
+  Set VBComponentToExport = Nothing
+Else
+  Set VBComponents = Nothing
+  Set VBComponentToExport = book.VBProject.VBComponents.Item(GetModuleName(moduleFileName))
+End if
+
+call ErrorHandle("Can not set VBComponent", True)
+
+If Not (VBComponents Is Nothing) Then
+    For Each vbComponent In VBComponents
+        call ExportFromVBComponent(vbComponent, dirModules, "")
+    Next
+End If
+call ErrorHandle("Can not Export modules.", True)
+On Error Goto 0
+
+IF Not (VBComponentToExport Is Nothing)  Then
+    call ExportFromVBComponent(VBComponentToExport, dirModules, moduleFileName)
+End if
+call ErrorHandle("Can not Export a module.", True)
+On Error Goto 0
+
+Set book = Nothing
+Set objExcel = Nothing
+Set fso = Nothing
+WScript.StdOut.WriteLine "Export Complete."
+WScript.Quit(0)
+''---------------------------------------------end-------------------------------------
+
+Function ErrorHandle(message, isQuit)
+  If Err.Number <> 0 Then
+    WScript.StdErr.WriteLine message
+    WScript.StdErr.WriteLine Error.Description
+    If isQuit Then
+      WScript.Quit(Err.Number)
+    End If
+  End if
+End Function
+
+Function ExportFromVBComponent(vbComponent, dirModules, moduleFileName)
+    Dim TypeOfModule
+    Dim modulePath
     TypeOfModule = ResolveExtension(vbComponent.Type) 'include .sht.cls
     modulePath = dirModules & "\" & vbComponent.Name & TypeOfModule
 
@@ -132,14 +146,14 @@ For Each vbComponent In VBComponents
         If TypeOfModule = "" Then
             ' do nothing
             DebugWriteLine "Next is not exported1", vbComponent.Name
-        ElseIF vbComponent.Type = 100 And isExportSheet Then
+        ElseIF vbComponent.Type = 100  Then
             sheetObjContents = vbComponent.CodeModule.Lines(1, vbComponent.CodeModule.CountOfLines)
             ExportSheetModule modulePath, sheetObjContents
         ElseIf vbComponent.Type = 1  Then 'bas
             ExportNormalModule modulePath, vbComponent
         ElseIf vbComponent.Type = 2  Then 'cls
             ExportNormalModule modulePath, vbComponent
-        ElseIf vbComponent.Type = 3   And isExportForm Then 'frm
+        ElseIf vbComponent.Type = 3    Then 'frm
             ExportNormalModule modulePath, vbComponent
         End If
     Else
@@ -147,21 +161,28 @@ For Each vbComponent In VBComponents
         DebugWriteLine "modulePath", modulePath
         DebugWriteLine "moduleFileName", moduleFileName
     End If
-Next
+End Function
 
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not Export or Checkout."
-    WScript.Quit(Err.Number)
-End If
-On Error Goto 0
+'' sheet1.sht.cls > sheet1
+'' module1.cls > module1
+Function GetModuleName(moduleFileName)
+    Dim fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
 
-Set book = Nothing
-Set objExcel = Nothing
-Set fso = Nothing
-WScript.StdOut.WriteLine "Export Complete."
-WScript.Quit(0)
+    Dim base1
+    Dim moduleName
+    base1 = fso.GetBaseName(moduleFileName)
 
-'' modules
+    If fso.GetExtensionName(base1) = "" Then
+      moduleName = base1
+    Else
+      moduleName = fso.GetBaseName(base1)
+    End If
+
+    GetModuleName = moduleName
+    Set fso = Nothing
+End Function
+
 
 Function ResolveExtension(cType)
     Select Case cType
@@ -179,7 +200,7 @@ Function ExportNormalModule(filePath, vbComponent)
         Exit Function
     End if
     vbComponent.Export filePath
-    DebugWriteLine "Export normal module", filePath
+    DebugWriteLine "Export normal module: ", filePath
 End Function
 
 Function ExportSheetModule(filePath, contents)
@@ -195,7 +216,7 @@ Function ExportSheetModule(filePath, contents)
     Set objFile = objFS.CreateTextFile(strFile)
     objFile.Write(contents)
     objFile.Close
-    DebugWriteLine "Export sheet module", filePath
+    DebugWriteLine "Export sheet module: ", filePath
 End Function
 
 Function CreateFolder(folderPath)

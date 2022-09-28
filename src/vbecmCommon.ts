@@ -102,28 +102,3 @@ function s2u(sb: Buffer) {
     vscode.workspace.getConfiguration('vbecm').get<string>('vbsEncode') || 'windows-31j';
   return iconv.decode(sb, vbsEncode);
 }
-
-export function showInformationMessage(message: string) {
-  vscode.window.showInformationMessage(getHourMinute() + ' , ' + message);
-}
-
-export function showWarningMessage(message: string) {
-  vscode.window.showWarningMessage(getHourMinute() + ' , ' + message);
-}
-
-export function showErrorMessage(message: string | unknown) {
-  if (message instanceof Error) {
-    vscode.window.showErrorMessage(getHourMinute() + ' , ' + message.message);
-    return;
-  }
-  vscode.window.showErrorMessage(getHourMinute() + ' , ' + message);
-}
-
-function getHourMinute() {
-  const date = new Date();
-  const dateString =
-    date.getHours().toString().padStart(2, '0') +
-    ':' +
-    date.getMinutes().toString().padStart(2, '0');
-  return dateString;
-}
