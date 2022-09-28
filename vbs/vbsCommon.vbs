@@ -82,8 +82,8 @@ Sub CloseExcelFile(bookName)
   On Error Resume Next
   Set objExcel = GetObject(,"Excel.Application")
   If objExcel Is Nothing Then
-      DebugWriteLine "Err", Err.Description
-      WScript.Quit(100)
+      DebugWriteLine "Info", "No Excel running"
+      WScript.Quit(0)
   End If
   
   If Err.Number <> 0 Then
