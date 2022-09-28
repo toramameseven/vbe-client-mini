@@ -11,9 +11,50 @@ This extension thinks Excel as Excel Server.
 * Windows 10
 * Excel
 
+## Before use
+
+### vscode setting files.insertFinalNewline
+
+You should better set setting files.insertFinalNewline On.
+When vbe imports a module ends with not a newline and exports it,
+the module is added a newline. So vbecm detect difference imported from exported.
+
+### vscode encoding
+
+If your locale vbe encoding is not convertible to utf-8,
+you set properly vscode encoding for vba module. Do not use auto detect.
+For Japanese, if set auto detect, sometimes detect error occur.
+
+
+### exclude settings
+
+You should better exclude the .base and .vbe folder at the explorer and the search.
+
+```
+  "files.exclude": {
+    "**/.base": true,
+    "**/.vbe": true,
+    "**/.frx": true
+  },
+  "search.exclude": {
+      "**/.base": true,
+      "**/.vbe": true,
+  },
+```
+### settings
+
+* At cjk language area, vbs message not work good beside Japanese. Set encoding option
+  * vbecm.vbsEncode, for japanese 'windows-31j'
+
+### Recommendation
+
+if you need, it is better to install VSCode VBA below.
+* https://marketplace.visualstudio.com/items?itemName=spences10.VBA
+
+
 ## Features
 
-before use this extension, you must back up your xlsm or xlam file.
+Before use this extension, you must back up your xlsm or xlam file.
 
 ### Explorer context menu for an xlsm and an xlam
 
@@ -37,9 +78,13 @@ before use this extension, you must back up your xlsm or xlam file.
 * Push All Vba modules
   * Push all modules form a Src_[xxx.xlsm] folder
   * you can push all modules in the source folder to the excel book.
+* Pull All Vba modules
+  * Pull all modules to a Src_[xxx.xlsm] folder
 * Check modified
   * Check modification among srcXXX, .vbe and .base.
   * The result is shown at Explore Diff
+* Compile Project
+  * Compile select folder project.
 
 ### Explorer context menu for DIFF:
 
@@ -104,30 +149,6 @@ In the src_[excelBookName] folder, you can see a .vbe folder.
 When you commit or import modules or check modification, this folder is updated.
 And when you import modules, vbecm tests if there are difference between the .vbe  and .base folders.
 
-### exclude settings
-
-You should better exclude the .base and .vbe folder at the explorer and the search.
-
-```
-  "files.exclude": {
-    "**/.base": true,
-    "**/.vbe": true,
-  },
-  "search.exclude": {
-      "**/.base": true,
-      "**/.vbe": true,
-  },
-```
-### settings
-
-* At cjk language area, vbs message not work good beside Japanese. Set encoding option
-  * vbecm.vbsEncode, for japanese 'windows-31j'
-
-## Recommendation
-
-if you need, it is better to install VSCode VBA below.
-* https://marketplace.visualstudio.com/items?itemName=spences10.VBA
-
 
 ## How to build
 
@@ -141,12 +162,10 @@ vsce publish
 
 ## Known problems
 
-* If the encoding of your vba modules is not convertible to utf8, do not save the modules on utf8.
-  Sometimes I do this, and messages in modules become unreadable.
-* At cjk language area, vbs message not work good beside Japanese. Please customize your encoding on the settings.
 * Sometimes, Excel remain on background. You should kill the process on a task manager. Sorry.
 * Sometimes, you meet export or import error. So you recover from a backup excel book.
-* When vbecm is working, [[vbecm]] is displayed on the status bar. If no vbecm menus displayed with out [[vbecm]] , maybe bugs, please reload your vscode.
+* When vbecm is working, [[vbecm]] is displayed on the status bar. 
+  If no vbecm menus displayed without [[vbecm]] , maybe bugs, please reload your vscode.
 * When you import a sheet module, sometimes you find new empty line at end of module.
 * Sometime, you may see the folder src_GUID. It stays when some errors occur. Please delete it.
 
@@ -159,7 +178,6 @@ Not deep dive.
 Sheet modules and Workbook modules are exported to [ModuleName].sht.cls.
 For vbecm distinguishes normal class modules from sheet(book) modules.
 Thanks for the [VbaDeveloper](https://github.com/hilkoc/vbaDeveloper "VbaDeveloper")
-
 
 ### Opened excel file
 

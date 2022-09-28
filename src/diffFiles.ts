@@ -100,6 +100,7 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
     }
 
     if (this.bookPath === undefined) {
+      throw Error('Select vba modules.');
       return;
     }
 

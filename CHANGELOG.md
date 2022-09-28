@@ -4,6 +4,9 @@ All notable changes to the "vbecm" extension will be documented in this file.
 
 ## [Unreleased]
 
+
+## [0.0.6] - 2022-09-28
+
 ### Added
 - Options: Automatically update modification. default false.
   For Automatically update modification, and feel slow operation.

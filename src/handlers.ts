@@ -66,7 +66,6 @@ export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
   }
 }
 
-
 export async function handlerCompileFolder(uriFolder: vscode.Uri) {
   const bookPath = await getExcelPathSrcFolder(uriFolder);
   if (bookPath === undefined) {
@@ -89,8 +88,6 @@ export function handlerCompile(uriBook: vscode.Uri) {
     displayMenus(true);
   }
 }
-
-
 
 // import all modules
 export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
