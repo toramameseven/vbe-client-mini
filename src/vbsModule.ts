@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as fse from 'fs-extra';
 import * as iconv from 'iconv-lite';
-import { vbeOutput } from './vbeOutput';
 import { v4 as uuidv4 } from 'uuid';
 import { spawnSync } from 'child_process';
 import dirCompare = require('dir-compare');
@@ -10,6 +9,7 @@ import { dirExists, fileExists } from './vbecmCommon';
 import * as vbecmCommon from './vbecmCommon';
 import { DiffFileInfo, fileDiffProvider } from './diffFiles';
 import { vbeReadOnlyDocumentProvider } from './extension';
+import * as vbeOutput from './vbeOutput';
 
 export const FOLDER_VBS = 'vbs';
 export const FOLDER_PREFIX_SRC = 'src_';
@@ -143,7 +143,8 @@ export async function importModules(
     successImport = true;
   } catch (e) {
     successImport = false;
-    vscode.window.showWarningMessage('import error. now try to recover.');
+    vbeOutput.showWarn('import error. now try to recover.', true);
+    vbeOutput.showWarn(e, true);
   }
 
   // import recovery
@@ -570,7 +571,7 @@ async function importModuleSync(
     await exportModuleAsync(pathBook, vbeDir, moduleFileName);
     const r = comparePath(srcPath, vbePath);
     if (r.same === false) {
-      throw Error('Import verify Error!!');
+      throw Error('Import verify Error!! try files.insertFinalNewline is On');
     }
   } catch (error) {
     throw error;
