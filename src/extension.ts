@@ -123,7 +123,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
-      //vbeOutput.appendLine(`onDidSaveTextDocument: ${event.fileName}`);
+      const extensions = ['.bas', '.frm', '.cls', '.frx'];
+      const extension = event.fileName.slice(-4).toLowerCase();
+      if (!extensions.includes(extension)) {
+        return;
+      }
       handler.handlerCheckModifiedOnSave(event.uri);
     })
   );
