@@ -69,6 +69,8 @@ If Err.Number <> 0 Then
     WScript.Quit(Err.Number)
 End if
 
+'' select target project module
+objExcel.ActiveWorkbook.VBProject.VBComponents(1).Activate
 '' select line
 objExcel.VBE.ActiveVBProject.VBComponents(moduleName).Activate
 objExcel.VBE.ActiveVBProject.VBComponents(moduleName).CodeModule.CodePane.SetSelection lineCodePane, 1, lineCodePane, 10
