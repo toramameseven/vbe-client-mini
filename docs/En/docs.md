@@ -1,32 +1,46 @@
 
+# vbecm README
+
+vbe-client-mini
+
 This is vbe client mini.
 Vba module export, import extension for vs code.
 This extension thinks Excel as Excel Server.
 
-# Requirement
+## Requirement
 
 
 * Windows 10
 * Excel
 
-# Before use
+## Before use
 
 
-## vscode setting files.insertFinalNewline
+### Macro Settings
+
+
+Set on  next settings
+
+* Macro Settings
+    * Enable all macors(not recommended; potensially dangerouse code can run)
+* Developer Macro Settings
+    * Trust access to the VBA project object model
+
+### vscode setting files.insertFinalNewline
 
 
 You should better set setting files.insertFinalNewline On.
 When vbe imports a module ends with not a newline and exports it,
 the module is added a newline. So vbecm detect difference imported from exported.
 
-## vscode encoding
+### vscode encoding
 
 
 If your locale vbe encoding is not convertible to utf-8,
 you set properly vscode encoding for vba module. Do not use auto detect.
 For Japanese, if set auto detect, sometimes detect error occur.
 
-## exclude settings
+### exclude settings
 
 
 You should better exclude the .base and .vbe folder at the explorer and the search.
@@ -44,24 +58,24 @@ You should better exclude the .base and .vbe folder at the explorer and the sear
 },
 
 ```
-## settings
+### settings
 
 
 * At cjk language area, vbs message not work good beside Japanese. Set encoding option
     * vbecm.vbsEncode, for japanese 'windows-31j'
 
-## Recommendation
+### Recommendation
 
 
 if you need, it is better to install VSCode VBA below.
 * https://marketplace.visualstudio.com/items?itemName=spences10.VBA
 
-# Features
+## Features
 
 
 Before use this extension, you must back up your xlsm or xlam file.
 
-## Explorer context menu for an xlsm and an xlam
+### Explorer context menu for an xlsm and an xlam
 
 
 * Export all VBA modules
@@ -79,7 +93,7 @@ Before use this extension, you must back up your xlsm or xlam file.
     * You can not know frx is modified or not.  If you modified a frm on the vscode,
         you can export only frx files.
 
-## Explorer context menu for a Src_[xxx.xlsm] folder
+### Explorer context menu for a Src_[xxx.xlsm] folder
 
 
 * Push All Vba modules
@@ -93,12 +107,12 @@ Before use this extension, you must back up your xlsm or xlam file.
 * Compile Project
     * Compile select folder project.
 
-## Explorer context menu for DIFF:
+### Explorer context menu for DIFF:
 
 
 Modified modules are shown in the DIFF.
 
-### src(base)
+#### src(base)
 
 
 If there is some modification in the src folder, the modified modules are shown.
@@ -108,7 +122,7 @@ You can click to compare the module in base and the module in the src.
 
 You can right click to push the module to a Excel.
 
-### vbe(base)
+#### vbe(base)
 
 
 If there is some modification in the VBE, the modified modules are shown.
@@ -123,7 +137,7 @@ The The resolve command is to copy vbe to base.
 
 The resolve command is very confused. Sorry.
 
-## editor context menu
+### editor context menu
 
 
 * Push VBA module
@@ -139,29 +153,29 @@ The resolve command is very confused. Sorry.
     * Goto the code of module on the vbe form the editor you select.
         It does not work for a workbook module.
 
-## Folders
+### Folders
 
 
-### src_[excelBookName] folder
+#### src_[excelBookName] folder
 
 
 When you export modules, the modules are in the src_[excelBookName] folder.
 
-### .base folder
+#### .base folder
 
 
 In the src_[excelBookName] folder, you can see a .base folder.
 When you commit or import modules, this folder is updated.
 And when you export modules, vbecm tests if there are difference between the src_[excelBookName]  and .base folders.
 
-### .vbe folder
+#### .vbe folder
 
 
 In the src_[excelBookName] folder, you can see a .vbe folder.
 When you commit or import modules or check modification, this folder is updated.
 And when you import modules, vbecm tests if there are difference between the .vbe  and .base folders.
 
-# How to build
+## How to build
 
 
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
@@ -174,7 +188,7 @@ vsce publish
 
 ```
 
-# Known problems
+## Known problems
 
 
 * Sometimes, Excel remain on background. You should kill the process on a task manager. Sorry.
@@ -184,42 +198,42 @@ vsce publish
 * When you import a sheet module, sometimes you find new empty line at end of module.
 * Sometime, you may see the folder src_GUID. It stays when some errors occur. Please delete it.
 
-# Shallow dive
+## Shallow dive
 
 
 Not deep dive.
 
-## Sheet modules and Workbook modules
+### Sheet modules and Workbook modules
 
 
 Sheet modules and Workbook modules are exported to [ModuleName].sht.cls.
 For vbecm distinguishes normal class modules from sheet(book) modules.
 Thanks for the [VbaDeveloper](https://github.com/hilkoc/vbaDeveloper "VbaDeveloper")
 
-## Opened excel file
+### Opened excel file
 
 
 While vbecm is working, Excel dose not close. Please close the Excel when you end using it.
 
-## For xlam file
+### For xlam file
 
 
 When you use an xlam file, vbecm add a book to the excel instance.
 
-## Import frm
+### Import frm
 
 
 When you import a frm module, you find a extra line added.
 vbecm will delete the line.
 
-## Diff algorism
+### Diff algorism
 
 we are using the dir-compare and we are very grateful to be able to use it.
 https://github.com/gliviu/dir-compare
 And we want the option IGNORE CONTENT CASE, we fork and add some modification.
 We think there's probably a way to easily extend it without forking.
 
-# Release Notes
+## Release Notes
 
 
 [see change log](./CHANGELOG.md)
