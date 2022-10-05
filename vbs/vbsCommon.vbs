@@ -44,7 +44,7 @@ Sub OpenExcelFile(bookPath)
   '' check, is open target Excel file 
   Dim bookName
   bookName = fso.GetFileName(bookPath)
-
+  DebugWriteLine "Book name now Get: ", bookName
 
   Dim wb, IsOpenFile
   IsOpenFile = False
@@ -130,7 +130,7 @@ Function DeleteFilesInFolder(folderPath)
 End Function
 
 Sub DebugWriteLine(title, value)
-    exit Sub
+    ''exit Sub
     Dim outTitle
     Dim outValue
     outTitle = title
@@ -175,7 +175,7 @@ Sub TestCompiled(objExcel)
     Set ctrlCompile = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 578)
     If Err.Number <> 0 Or ctrlCompile Is Nothing Then
         WScript.StdErr.WriteLine ("Can not find compile command")
-        WScript.Quit(1001)
+        WScript.Quit(1004)
     Else
         If ctrlCompile.Enabled = True Then
           ctrlCompile.Execute
@@ -201,7 +201,7 @@ Sub TestRunningVba(objExcel)
     Set ctrlPause = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 189)
     If Err.Number <> 0 Or ctrlPause Is Nothing Then
         WScript.StdErr.WriteLine ("Can not find pause command")
-        WScript.Quit(1001)
+        WScript.Quit(1002)
     Else
         If ctrlPause.Enabled = True Then
           '' vba not running, go a head.
@@ -209,7 +209,7 @@ Sub TestRunningVba(objExcel)
           '' now pause, so not enabled.
           Call OpenVbe(objExcel)
           WScript.StdErr.WriteLine ("Can not run. May be paused in VBE.")
-          WScript.Quit(1001)
+          WScript.Quit(1003)
         End IF
     End If
     on error goto 0
@@ -221,7 +221,7 @@ Sub TestRunningVba(objExcel)
     Set ctrlContinue = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 186)
     If Err.Number <> 0 Or ctrlContinue Is Nothing Then
         WScript.StdErr.WriteLine ("Can not find continue command")
-        WScript.Quit(1001)
+        WScript.Quit(1005)
     Else
         If ctrlContinue.Enabled = True Then
           '' vba not running, go a head.
@@ -229,8 +229,54 @@ Sub TestRunningVba(objExcel)
           '' now pause, so not enabled.
           Call OpenVbe(objExcel)
           WScript.StdErr.WriteLine ("Can not run. May be running in VBE.")
-          WScript.Quit(1001)
+          WScript.Quit(1006)
         End IF
+    End If
+    on error goto 0
+End Sub
+
+''ActivateVbeProject_Test
+
+Sub ActivateVbeProject_Test()
+    Dim fso
+    Set fso = createObject("Scripting.FileSystemObject")
+    Dim bookPath
+    Dim moduleName
+    bookPath = fso.BuildPath(GetProjectRoot(fso), "xlsms\xlsAmMenu.xlam")
+    moduleName = "clsAllAdoc"
+    OpenExcelFile bookPath
+    ActivateVbeProject bookPath
+    DebugWriteLine "ActivateVbeProject_Test", "End"
+End Sub
+
+Sub ActivateVbeProject(projectFilePath)
+    Dim objExcel
+    Set objExcel = GetObject(,"Excel.Application")
+
+    On error Resume Next
+    Dim targetFilePath
+    targetFilePath = LCase(projectFilePath)
+    Dim n
+    For Each n In objExcel.VBE.VBProjects
+        If LCase(n.FileName) = targetFilePath Then
+            Set objExcel.VBE.ActiveVBProject = n
+            DebugWriteLine "ActiveProject", objExcel.VBE.ActiveVBProject.Name
+            Exit For
+        End if
+
+        If Err.Number = 76 Then
+            ' do next
+        ElseIf Err.Number <> 0 Then
+          WScript.StdErr.WriteLine ("ActivateVbeProject error: " & projectFilePath)
+          WScript.StdErr.WriteLine Err.Description
+          WScript.Quit(1007)
+        End If
+    Next
+
+    If Err.Number <> 0 Then
+      WScript.StdErr.WriteLine ("ActivateVbeProject error: " & projectFilePath)
+      WScript.StdErr.WriteLine Err.Description
+      WScript.Quit(1008)
     End If
     on error goto 0
 End Sub

@@ -43,9 +43,11 @@ On Error Goto 0
 
 '' compile project
 On Error Resume Next
-'' FindControl(type, id. ......)
 '' may be one module exists.
-objExcel.ActiveWorkbook.VBProject.VBComponents(1).Activate
+ActivateVbeProject bookPath
+
+'' FindControl(type, id. ......)
+'' 578 compile
 Dim ctrl
 Set ctrl = objExcel.VBE.ActiveVBProject.VBE.CommandBars.FindControl(, 578)
 

@@ -18,8 +18,8 @@ If WScript.Arguments.Count = 3 Then
   lineCodePane = WScript.Arguments(2) ''120
 Else
   '' for debug, run with no arguments
-  bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
-  moduleName = "module2"
+  bookPath = fso.BuildPath(projectRoot, "xlsms\xlsAmMenu.xlam")
+  moduleName = "clsAllAdoc"
   lineCodePane = 120
 End If
 
@@ -69,13 +69,14 @@ If Err.Number <> 0 Then
     WScript.Quit(Err.Number)
 End if
 
-'' select target project module
-objExcel.ActiveWorkbook.VBProject.VBComponents(1).Activate
+ActivateVbeProject bookPath
+
 '' select line
 objExcel.VBE.ActiveVBProject.VBComponents(moduleName).Activate
 objExcel.VBE.ActiveVBProject.VBComponents(moduleName).CodeModule.CodePane.SetSelection lineCodePane, 1, lineCodePane, 10
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine "Can not select line"
+    WScript.StdErr.WriteLine Err.Description
 End if
 
 
