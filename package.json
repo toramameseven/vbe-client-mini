@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -113,6 +113,10 @@
 			{
 				"command": "vbeDiffView.resolveVbe",
 				"title": "Resolve vbe"
+			},
+      {
+				"command": "vbeDiffView.pullSrc",
+				"title": "Pull"
 			}
 		],
 		"menus": {
@@ -172,16 +176,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "vbeDiffView.diffVbeSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
-				},
-				{
 					"command": "vbeDiffView.pushSrc",
 					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
 				},
-				{
-					"command": "vbeDiffView.resolveVbe",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
+        {
+					"command": "vbeDiffView.pullSrc",
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemConflict && isWindows"
 				}
 			],
 			"editor/context": [
