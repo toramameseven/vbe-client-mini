@@ -181,7 +181,7 @@
 				},
         {
 					"command": "vbeDiffView.pullSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemConflict && isWindows"
+					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
 				}
 			],
 			"editor/context": [
@@ -230,7 +230,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
-		"pretest-es": "npm run esbuild-nomap && npm run lint",
+		"pretest-es": "npm run precompile && npm run esbuild-nomap && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
 		"do-test": "node ./out/runTest.js",

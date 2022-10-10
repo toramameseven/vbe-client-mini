@@ -5,6 +5,20 @@ All notable changes to the "vbecm" extension will be documented in this file.
 ## [Unreleased]
 
 
+## [0.0.7] - 2022-10-10
+
+### Added
+
+- Display conflicting modules in the diff tree.
+
+### Changed
+
+- Resolve command in the diff tree is removed. For it was very confusing.
+
+### Fixed
+
+- Compile and Goto VBE commands are fixed. Sometimes they did not work. #8, #9
+
 ## [0.0.6] - 2022-09-28
 
 ### Added

@@ -7,7 +7,7 @@ import * as vbecmCommon from './vbecmCommon';
 export type DiffFileInfo = {
   isHeader?: boolean;
   moduleName?: string;
-  diffState?: 'modified' | 'add' | 'removed';
+  diffState?: 'modified' | 'add' | 'removed' | 'conflicting';
   isBase?: boolean;
   baseFilePath?: string;
   isCompare?: boolean;
@@ -27,7 +27,8 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
   constructor(
     private bookPath?: string,
     private filesBaseSrc: DiffFileInfo[] = [],
-    private filesBaseVbe: DiffFileInfo[] = []
+    private filesBaseVbe: DiffFileInfo[] = [],
+    private conflicting: DiffFileInfo[] = []
   ) {}
 
   refresh(): void {
@@ -37,11 +38,13 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
   setFiles(
     bookPath?: string,
     filesBaseSrc: DiffFileInfo[] = [],
-    filesBaseVbe: DiffFileInfo[] = []
+    filesBaseVbe: DiffFileInfo[] = [],
+    conflicting: DiffFileInfo[] = []
   ) {
     this.bookPath = bookPath;
     this.filesBaseSrc = filesBaseSrc;
     this.filesBaseVbe = filesBaseVbe;
+    this.conflicting = conflicting;
   }
 
   getTreeItem(element: DiffFileInfo): vscode.TreeItem {
@@ -63,7 +66,10 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
         arguments: [element],
       };
       if (element.titleBaseTo === 'base-vbe: ') {
-        treeItem.contextValue = 'FileDiffTreeItemBaseVbe';
+        treeItem.contextValue = element.diffState === 'removed' ? '' : 'FileDiffTreeItemBaseVbe';
+      }
+      if (element.titleBaseTo === 'vbe-src: ') {
+        treeItem.contextValue = 'FileDiffTreeItemConflict';
       }
       treeItem.description = element.diffState;
       return treeItem;
@@ -73,15 +79,22 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
   async getChildren(element?: DiffFileInfo): Promise<DiffFileInfo[]> {
     if (element) {
       const r = element.moduleName === 'src(base)' ? this.filesBaseSrc : this.filesBaseVbe;
-      return r;
+      if (element.moduleName === 'src(base)') {
+        return this.filesBaseSrc;
+      }
+      if (element.moduleName === 'vbe(base)') {
+        return this.filesBaseVbe;
+      }
+      return this.conflicting;
     } else {
       // root
       const n: DiffFileInfo =
         this.filesBaseSrc.length > 0 ? { moduleName: 'src(base)', isHeader: true } : {};
       const n1: DiffFileInfo =
         this.filesBaseVbe.length > 0 ? { moduleName: 'vbe(base)', isHeader: true } : {};
-
-      const r = [n, n1].filter((_) => _.moduleName);
+      const n2: DiffFileInfo =
+        this.conflicting.length > 0 ? { moduleName: 'conflict', isHeader: true } : {};
+      const r = [n, n1, n2].filter((_) => _.moduleName);
       return r;
     }
   }
@@ -111,9 +124,9 @@ export class FileDiffProvider implements vscode.TreeDataProvider<DiffFileInfo> {
     }
 
     try {
-      const { diffBaseSrc, diffBaseVbe } = await compareModules(this.bookPath);
+      const { diffBaseSrc, diffBaseVbe, conflicting } = await compareModules(this.bookPath);
       vbeTreeView.title = 'diff: ' + path.basename(this.bookPath);
-      fileDiffProvider.setFiles(this.bookPath, diffBaseSrc, diffBaseVbe);
+      fileDiffProvider.setFiles(this.bookPath, diffBaseSrc, diffBaseVbe, conflicting);
       fileDiffProvider.refresh();
     } catch (error) {
       throw error;
@@ -148,7 +161,7 @@ export class FileDiff extends vscode.TreeItem {
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public command?: vscode.Command,
-    public description?: 'modified' | 'add' | 'removed' | undefined
+    public description?: 'modified' | 'add' | 'removed' | 'conflicting' | undefined
   ) {
     super(label, collapsibleState);
     // this.tooltip = 'tooltisp';

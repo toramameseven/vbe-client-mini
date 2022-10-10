@@ -26,100 +26,104 @@ export function activate(context: vscode.ExtensionContext) {
 
   //   --------------book
   context.subscriptions.push(
-    vscode.commands.registerCommand('book.export', handler.handlerExportModulesFromBook)
+    vscode.commands.registerCommand('book.export', handler.handlerBookExportModules)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('book.import', handler.handlerImportModulesToBook)
+    vscode.commands.registerCommand('book.import', handler.handlerBookImportModules)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('book.compile', handler.handlerCompile)
+    vscode.commands.registerCommand('book.compile', handler.handlerBookCompile)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('book.exportFrx', handler.handlerExportFrxModulesFromBook)
+    vscode.commands.registerCommand('book.exportFrx', handler.handlerBookExportFrxModules)
   );
 
   // push all module from folder
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'srcFolder.commit-all',
-      handler.handlerCommitAllModuleFromFolder
+      handler.handlerSrcFolderCommitAllModules
     )
   );
 
   // pull all module from folder
   context.subscriptions.push(
+    vscode.commands.registerCommand('srcFolder.pull-all', handler.handlerSrcFolderExportModulesTo)
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand(
-      'srcFolder.pull-all',
-      handler.handlerExportModulesFromFolder
+      'srcFolder.checkModified',
+      handler.handlerSrcFolderRefreshModification
     )
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('srcFolder.checkModified', handler.handlerCheckModifiedOnFolder)
+    vscode.commands.registerCommand('srcFolder.compile', handler.handlerSrcFolderCompile)
   );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('srcFolder.compile', handler.handlerCompileFolder)
-  );
-
 
   //   --------------editor
   context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('editor.run', handler.handlerVbaRunFromEditor)
+    vscode.commands.registerTextEditorCommand('editor.run', handler.handlerEditorVbaRun)
   );
 
   // check out on editor
   context.subscriptions.push(
-    vscode.commands.registerCommand('editor.pullModule', handler.handlerPullModuleAsync)
+    vscode.commands.registerCommand('editor.pullModule', handler.handlerEditorPullModule)
   );
 
   // commit form editor
   context.subscriptions.push(
-    vscode.commands.registerCommand('editor.commit', handler.handlerCommitModuleFromFile)
+    vscode.commands.registerCommand('editor.commit', handler.handlerEditorCommitModule)
   );
 
   // goto vbe
   context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('editor.gotoVbe', handler.handlerGotoVbe)
+    vscode.commands.registerTextEditorCommand('editor.gotoVbe', handler.handlerEditorGotoVbe)
   );
 
   //  /////////////////////////////////  //////////////////////////////////////////////////
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'vbeDiffView.refreshModification',
-      handler.handlerUpdateModificationOnFolder
+      handler.handlerDiffViewRefreshModification
     )
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'vbeDiffView.collapseAll',
-      handler.handlerCollapseAllVbeDiffView
-    )
+    vscode.commands.registerCommand('vbeDiffView.collapseAll', handler.handlerDiffViewCollapseAll)
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('vbeDiffView.pushSrc', handler.handlerCommitModuleFromVbeDiff)
+    vscode.commands.registerCommand('vbeDiffView.pushSrc', handler.handlerDiffViewCommitModule)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('vbeDiffView.resolveVbe', (info) =>
-      handler.handlerResolveVbeConflicting(info)
-    )
+    vscode.commands.registerCommand('vbeDiffView.pullSrc', handler.handlerDiffViewPullModule)
   );
 
+  // delete this command, for very confused
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand('vbeDiffView.resolveVbe', (info) =>
+  //     handler.handlerResolveVbeConflicting(info)
+  //   )
+  // );
+
+  // define at tree
   context.subscriptions.push(
     vscode.commands.registerCommand('vbeDiffView.diffBaseTo', (resource) =>
-      handler.handlerDiffBaseTo(resource)
+      handler.handlerDiffViewDiffBaseTo(resource)
     )
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('vbeDiffView.diffVbeSrc', (resource) =>
-      handler.handlerDiffSrcToVbe(resource)
-    )
-  );
+
+  // add tree for conflict
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand('vbeDiffView.diffVbeSrc', (resource) =>
+  //     handler.handlerDiffViewDiffSrcToVbe(resource)
+  //   )
+  // );
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
@@ -128,7 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (!extensions.includes(extension)) {
         return;
       }
-      handler.handlerCheckModifiedOnSave(event.uri);
+      handler.handlerOnSaveRefreshModification(event.uri);
     })
   );
 
