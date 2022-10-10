@@ -1,4 +1,5 @@
 Option Explicit
+'' getModules.vbs
 '' get count of modules in a vbe project
 ''
 
@@ -19,8 +20,8 @@ Else
 End If
 
 '' debug output information
-DebugWriteLine "################", WScript.ScriptName
-DebugWriteLine "bookPath", bookPath
+LogDebug "################", WScript.ScriptName
+LogDebug "bookPath", bookPath
 
 
 If fso.FileExists(bookPath) = False Then
@@ -32,7 +33,7 @@ Dim dirModules
 dirModules = fso.GetParentFolderName(bookPath) & "\src_" & fso.GetFileName(bookPath)
 
 '' from vbsCommon.vbs
-OpenExcelFile bookPath
+OpenExcelFileWE bookPath
 
 Dim book
 Set book = GetObject(bookPath)

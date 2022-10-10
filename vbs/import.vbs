@@ -35,10 +35,10 @@ if moduleFolderPath = "" Then
 End If
 
 '' debug output information
-DebugWriteLine "################", WScript.ScriptName
-DebugWriteLine "bookPath", bookPath
-DebugWriteLine "modulePath", modulePath
-DebugWriteLine "moduleFolderPath", moduleFolderPath
+LogDebug "################", WScript.ScriptName
+LogDebug "bookPath", bookPath
+LogDebug "modulePath", modulePath
+LogDebug "moduleFolderPath", moduleFolderPath
 
 IF fso.FolderExists(moduleFolderPath) = False Then
     WScript.StdErr.WriteLine ("No src Folder: " & moduleFolderPath)
@@ -51,7 +51,7 @@ End If
 On Error Resume Next
 
 '' from vbsCommon.vbs
-OpenExcelFile bookPath
+OpenExcelFileWE bookPath
 
 Dim book
 Set book = GetObject(bookPath)
@@ -66,7 +66,7 @@ End If
 On Error Goto 0
 
 '' running check
-call TestRunningVba(objExcel)
+call TestRunningVba()
 
 
 On Error Resume Next
@@ -87,7 +87,7 @@ book.Save
 
 If Err.Number <> 0 Then
     WScript.StdErr.WriteLine ("Can not import modules: " & bookPath)
-    DebugWriteLine "importVbaModules Err", Err.description
+    LogDebug "importVbaModules Err", Err.description
     WScript.Quit(Err.Number)
 End If
 On Error Goto 0
@@ -112,16 +112,16 @@ Function DeleteVbaModules(book, modulePath, isUseFromModule, isUseSheetModule)
             If vbComponent.Type = 100 Then
                 If isUseSheetModule Then
                     vbComponent.CodeModule.DeleteLines 1, vbComponent.CodeModule.CountOfLines
-                    DebugWriteLine "Delete Content",vbComponent.Name
+                    LogDebug "Delete Content",vbComponent.Name
                 End If
             ElseIf vbComponent.Type = 3 Then
                 If isUseFromModule Then
-                    DebugWriteLine "Remove vbComponent",vbComponent.Name
+                    LogDebug "Remove vbComponent",vbComponent.Name
                     vBComponents.Remove vbComponent
                 End If
             Else
                 '' 2(cls), 1(bas)
-                DebugWriteLine "Remove vbComponent",vbComponent.Name
+                LogDebug "Remove vbComponent",vbComponent.Name
                 vBComponents.Remove vbComponent
             End If
         End If
@@ -152,7 +152,7 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
           fileExtension = LCase(fso.GetExtensionName(objFile.Name))
           If  fileExtension = "bas" Then
               Call vBComponents.Import (objFile.Path)
-              DebugWriteLine "Import bas module", objFile.Path
+              LogDebug "Import bas module", objFile.Path
           ElseIf fileExtension = "frm" Then
               Call importFormModule(vBComponents, objFile.Path, isUseFromModule)
           ElseIf (fileExtension = "cls") Then
@@ -162,7 +162,7 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
         End if
         If Err.Number <> 0 Then
             WScript.StdErr.WriteLine ("Can not import modules: " & bookPath)
-            DebugWriteLine "importVbaModules Err", Err.description
+            LogDebug "importVbaModules Err", Err.description
             WScript.Quit(Err.Number)
         End If
 
@@ -171,26 +171,6 @@ Public Sub importVbaModules(modulesFolder, book, excelBookPath, modulePath, isUs
     Set modulesFolder = Nothing
     Set objFile = Nothing
 End Sub
-
-
-Function GetModuleName(modulePath, refIsSheetClass)
-    '' sheet module is exported with .sht.cls
-    '' test this extension
-    Dim fso    
-    Set fso = CreateObject("Scripting.FileSystemObject")
-
-    Dim withoutFirstExt
-    withoutFirstExt = fso.GetBaseName(modulePath) 'filename without .ext
-    GetModuleName = withoutFirstExt
-
-    Dim secondExt
-    secondExt = LCase(fso.GetExtensionName(withoutFirstExt))
-    
-    refIsSheetClass = secondExt = "sht"
-    If refIsSheetClass  Then
-      GetModuleName = fso.GetBaseName(withoutFirstExt)
-    End If
-End Function
 
 '' import class module
 Public Function importClassModule(excelBookPath, modulePath, isUseSheetModule)
@@ -223,14 +203,14 @@ Public Function importClassModule(excelBookPath, modulePath, isUseSheetModule)
             fileContent = sourceFile.ReadAll
             sourceFile.Close
             Set sourceFile = Nothing
-            DebugWriteLine "Import sheet cls Content", vbComponent.Name
+            LogDebug "Import sheet cls Content", vbComponent.Name
             vbComponent.CodeModule.InsertLines 1, fileContent
         End If
     ElseIf isSrcSheetCls Then
         '' module is sheet cls, but the book has not the sheet name
         '' do not import
     Else
-        DebugWriteLine "Import cls module", modulePath
+        LogDebug "Import cls module", modulePath
         book.VBProject.VBComponents.Import modulePath
     End if
 
@@ -245,7 +225,7 @@ Public Function importFormModule(vBComponents, modulePath, isOptionImport)
     End if
 
     Call vBComponents.Import (modulePath)
-    DebugWriteLine "Import frm module", modulePath 
+    LogDebug "Import frm module", modulePath 
 
     Dim fso    
     Set fso = CreateObject("Scripting.FileSystemObject")

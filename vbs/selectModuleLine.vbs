@@ -6,8 +6,8 @@ Set fso = createObject("Scripting.FileSystemObject")
 Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
 '' get book path
-Dim projectRoot
-projectRoot = GetProjectRoot(fso)
+' declare at vbCommon
+' Dim projectRoot
 Dim moduleName
 Dim lineCodePane
 
@@ -27,49 +27,21 @@ Dim bookName
 bookName = fso.GetFileName(bookPath)
 
 '' debug output information
-DebugWriteLine "################", WScript.ScriptName
-DebugWriteLine "bookPath", bookPath
-DebugWriteLine "moduleName", moduleName
-DebugWriteLine "lineCodePane", lineCodePane
+LogDebug "################", WScript.ScriptName
+LogDebug "bookPath", bookPath
+LogDebug "moduleName", moduleName
+LogDebug "lineCodePane", lineCodePane
 
 
 '' open the book or attach the book
 On Error Resume Next
 '' from vbsCommon.vbs
-OpenExcelFile bookPath
-
-Dim book
-Set book = GetObject(bookPath)
-Dim objExcel
-Set objExcel = book.Application
-
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine ("Can not Open: " & bookName & " : " & bookPath)
-    WScript.Quit(Err.Number)
-End If
+OpenExcelFileWE bookPath
 
 
-'' FindControl(type, id. ......)
-'' open vbe
-Dim ctrl
-Set ctrl = objExcel.Application.CommandBars.FindControl(, 1695)
-If Err.Number <> 0 Or ctrl Is Nothing Then
-    WScript.StdErr.WriteLine ("Check objExcel Object Model Security")
-    WScript.StdErr.WriteLine Err.Description
-Else
-    If ctrl.Enabled = True Then
-        ctrl.Execute
-    Else
-        '' not enable
-    End IF
-End If
+call OpenVbe()
 
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not open vbe"
-    WScript.Quit(Err.Number)
-End if
-
-ActivateVbeProject bookPath
+ActivateVbeProjectWE bookPath
 
 '' select line
 objExcel.VBE.ActiveVBProject.VBComponents(moduleName).Activate

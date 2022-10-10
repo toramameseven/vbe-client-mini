@@ -1,15 +1,13 @@
 Option Explicit
 
-'' load external vbs.
 Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
 Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs", 1).ReadAll()
 
-Dim projectRoot
-projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
+' declare at vbCommon
+' Dim projectRoot
 
 Dim bookPath
-Dim bookName
 If WScript.Arguments.Count = 1 Then
     bookPath = WScript.Arguments(0)
 Else
@@ -17,23 +15,20 @@ Else
     bookPath = fso.BuildPath(projectRoot, "xlsms\macroTest.xlsm")
 End If
 
+Dim bookName
 bookName = fso.GetFileName(bookPath)
 
-DebugWriteLine "################ start", WScript.ScriptName
-DebugWriteLine "bookName", bookName
-DebugWriteLine "bookPath", bookPath
+LogDebug "################ start", WScript.ScriptName
+LogDebug "bookName", bookName
+LogDebug "bookPath", bookPath
 
 On Error Resume Next
-CloseExcelFile bookName
-
-If Err.Number <> 0 Then
-    WScript.StdErr.WriteLine "Can not close excel."
-    DebugWriteLine "----------------Err", "Can not close excel."
-    WScript.Quit(Err.Number)
-End If
+CloseExcelFileWE bookName
+Catch "Can not close excel.",9765
 
 WScript.StdOut.WriteLine "Excel Close Complete."
-DebugWriteLine "----------------End", WScript.ScriptName
+LogDebug "----------------End", WScript.ScriptName
+Catch "closeBook.vbs", 9999'
 WScript.Quit(0)
 '////////////////////////////////////////////////////////////////////////////
 
