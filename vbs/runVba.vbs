@@ -4,8 +4,8 @@ Dim fso
 Set fso = createObject("Scripting.FileSystemObject")
 Execute fso.OpenTextFile(fso.getParentFolderName(WScript.ScriptFullName) & "\vbsCommon.vbs").ReadAll()
 
-Dim projectRoot
-projectRoot = fso.getParentFolderName(fso.getParentFolderName(WScript.ScriptFullName))
+' declare at vbCommon
+' Dim projectRoot
 
 '' get book path and function to run
 Dim bookPath
@@ -20,13 +20,13 @@ Else
 End If
 
 '' debug output information
-DebugWriteLine "################", WScript.ScriptName
-DebugWriteLine "bookPath", bookPath
-DebugWriteLine "FunctionName", FunctionName
+LogDebug "################", WScript.ScriptName
+LogDebug "bookPath", bookPath
+LogDebug "FunctionName", FunctionName
 
 
 '' from vbsCommon.vbs
-Call OpenExcelFile(bookPath)
+Call OpenExcelFileWE(bookPath)
 
 '' get book instance
 Dim myWorkBook
@@ -36,8 +36,8 @@ Set objExcel = myWorkBook.Application
 
 '' test vba run or not
 '' in running, stop(end) quit script
-call TestCompiled(objExcel)
-call TestRunningVba(objExcel)
+call TestIfCompiled()
+call TestRunningVba()
 
 ' set Excel top view
 Dim objWshShell
@@ -49,10 +49,11 @@ objWshShell.AppActivate myWorkBook.Name, True
 '' run functionName on myWorkBook
 Dim ret
 ret = objExcel.Run(myWorkBook.Name & "!" & FunctionName)
+
 ' if run Function return value
 '' and output the value, stdout
-DebugWriteLine "Return Value:", CStr(ret)
-DebugWriteLine "If Return Value:", "out the value to stdout"
+LogDebug "Return Value:", CStr(ret)
+LogDebug "If Return Value:", "out the value to stdout"
 WScript.StdOut.WriteLine ret
 WScript.Quit(0)
 

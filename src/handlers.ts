@@ -31,16 +31,67 @@ const testAndConfirm =
 
 // for book
 // export all modules
-export async function handlerExportModulesFromFolder(uriFolder: vscode.Uri) {
+export async function handlerSrcFolderExportModulesTo(uriFolder: vscode.Uri) {
   const bookPath = await getExcelPathSrcFolder(uriFolder);
   if (bookPath === undefined) {
     vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
     return;
   }
-  await handlerExportModulesFromBook(vscode.Uri.file(bookPath));
+  await handlerBookExportModules(vscode.Uri.file(bookPath));
 }
 
-export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
+// commit all modules for commit
+export async function handlerSrcFolderCommitAllModules(uriFolder: vscode.Uri) {
+  vbeOutput.showInfo(`Start push all. ${uriFolder.fsPath}`);
+  const bookPath = await getExcelPathSrcFolder(uriFolder);
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
+    return;
+  }
+
+  const diffTestAndConfirm = testAndConfirm(
+    'Excel Vba may be modified. Do you push all? Check vbe view.'
+  );
+
+  displayMenus(false);
+  try {
+    const r = await vbs.importModules(bookPath, STRING_EMPTY, diffTestAndConfirm);
+    r && vbeOutput.showInfo('Success push all.');
+    await updateModificationBySystem();
+  } catch (e) {
+    vbeOutput.showError('Error push all.');
+    vbeOutput.showError(e);
+  } finally {
+    displayMenus(true);
+  }
+}
+
+export async function handlerSrcFolderRefreshModification(uri: vscode.Uri) {
+  vbeOutput.showInfo(`Start check modification: ${uri.fsPath}`, false);
+  displayMenus(false);
+  try {
+    const bookPathFromModule = await getExcelPathFromVbeModule(uri);
+    const bookPath = bookPathFromModule || (await getExcelPathSrcFolder(uri));
+    await updateModificationForce(bookPath);
+    vbeOutput.showInfo('Success check modification', false);
+  } catch (e) {
+    vbeOutput.showError('Error CheckModified.');
+    vbeOutput.showError(e);
+  } finally {
+    displayMenus();
+  }
+}
+
+export async function handlerSrcFolderCompile(uriFolder: vscode.Uri) {
+  const bookPath = await getExcelPathSrcFolder(uriFolder);
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
+    return;
+  }
+  await handlerBookCompile(vscode.Uri.file(bookPath));
+}
+
+export async function handlerBookExportModules(uriBook: vscode.Uri) {
   vbeOutput.showInfo(`Start export modules: ${uriBook.fsPath}`);
   // function to test source is modified?
   const diffTestAndConfirm = testAndConfirm(
@@ -66,16 +117,7 @@ export async function handlerExportModulesFromBook(uriBook: vscode.Uri) {
   }
 }
 
-export async function handlerCompileFolder(uriFolder: vscode.Uri) {
-  const bookPath = await getExcelPathSrcFolder(uriFolder);
-  if (bookPath === undefined) {
-    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
-    return;
-  }
-  await handlerCompile(vscode.Uri.file(bookPath));
-}
-
-export function handlerCompile(uriBook: vscode.Uri) {
+export function handlerBookCompile(uriBook: vscode.Uri) {
   vbeOutput.showInfo(`Start compile: ${uriBook.fsPath}`);
   displayMenus(false);
   try {
@@ -90,7 +132,7 @@ export function handlerCompile(uriBook: vscode.Uri) {
 }
 
 // import all modules
-export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
+export async function handlerBookImportModules(uriBook: vscode.Uri) {
   // temp vs vase
   vbeOutput.showInfo(`Start import modules: ${uriBook.fsPath}`);
   const diffTestAndConfirm = testAndConfirm(
@@ -111,7 +153,7 @@ export async function handlerImportModulesToBook(uriBook: vscode.Uri) {
   }
 }
 
-export async function handlerExportFrxModulesFromBook(uriBook: vscode.Uri) {
+export async function handlerBookExportFrxModules(uriBook: vscode.Uri) {
   vbeOutput.showInfo(`Start export frx modules: ${uriBook.fsPath}.`);
   displayMenus(false);
   try {
@@ -127,7 +169,7 @@ export async function handlerExportFrxModulesFromBook(uriBook: vscode.Uri) {
 
 // for module
 // export a module
-export async function handlerPullModuleAsync(uriModule: vscode.Uri) {
+export async function handlerEditorPullModule(uriModule: vscode.Uri) {
   vbeOutput.showInfo(`Start pull a module: ${uriModule.fsPath}`);
   // if the module file does not exist, return STRING_EMPTY
   const bookPath = await getExcelPathFromModule(uriModule);
@@ -157,7 +199,7 @@ export async function handlerPullModuleAsync(uriModule: vscode.Uri) {
 }
 
 // commit a module
-export async function handlerCommitModuleFromFile(uriModule: vscode.Uri) {
+export async function handlerEditorCommitModule(uriModule: vscode.Uri) {
   vbeOutput.showInfo(`Start push a module: ${uriModule.fsPath}`);
   const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push this file?');
   const bookPath = await getExcelPathFromModule(uriModule);
@@ -181,7 +223,7 @@ export async function handlerCommitModuleFromFile(uriModule: vscode.Uri) {
   }
 }
 
-export async function handlerGotoVbe(
+export async function handlerEditorGotoVbe(
   textEditor: TextEditor,
   edit: vscode.TextEditorEdit,
   uriModule: vscode.Uri
@@ -213,7 +255,7 @@ export async function handlerGotoVbe(
   }
 }
 
-export async function handlerVbaRunFromEditor(
+export async function handlerEditorVbaRun(
   textEditor: TextEditor,
   edit: vscode.TextEditorEdit,
   uriModule: vscode.Uri
@@ -253,33 +295,7 @@ export async function handlerVbaRunFromEditor(
   }
 }
 
-// commit all modules for commit
-export async function handlerCommitAllModuleFromFolder(uriFolder: vscode.Uri) {
-  vbeOutput.showInfo(`Start push all. ${uriFolder.fsPath}`);
-  const bookPath = await getExcelPathSrcFolder(uriFolder);
-  if (bookPath === undefined) {
-    vbeOutput.showWarn(uriFolder.fsPath + ' is not a VBE project folder.');
-    return;
-  }
-
-  const diffTestAndConfirm = testAndConfirm(
-    'Excel Vba may be modified. Do you push all? Check vbe view.'
-  );
-
-  displayMenus(false);
-  try {
-    const r = await vbs.importModules(bookPath, STRING_EMPTY, diffTestAndConfirm);
-    r && vbeOutput.showInfo('Success push all.');
-    await updateModificationBySystem();
-  } catch (e) {
-    vbeOutput.showError('Error push all.');
-    vbeOutput.showError(e);
-  } finally {
-    displayMenus(true);
-  }
-}
-
-export async function handlerCheckModifiedOnSave(uri: vscode.Uri) {
+export async function handlerOnSaveRefreshModification(uri: vscode.Uri) {
   vbeOutput.showInfo(`Start check modification on save: ${uri.fsPath}`, false);
   displayMenus(false);
   try {
@@ -295,24 +311,8 @@ export async function handlerCheckModifiedOnSave(uri: vscode.Uri) {
   }
 }
 
-export async function handlerCheckModifiedOnFolder(uri: vscode.Uri) {
-  vbeOutput.showInfo(`Start check modification: ${uri.fsPath}`, false);
-  displayMenus(false);
-  try {
-    const bookPathFromModule = await getExcelPathFromVbeModule(uri);
-    const bookPath = bookPathFromModule || (await getExcelPathSrcFolder(uri));
-    await updateModificationForce(bookPath);
-    vbeOutput.showInfo('Success check modification', false);
-  } catch (e) {
-    vbeOutput.showError('Error CheckModified.');
-    vbeOutput.showError(e);
-  } finally {
-    displayMenus();
-  }
-}
-
 // vbe diff tree view
-export async function handlerUpdateModificationOnFolder() {
+export async function handlerDiffViewRefreshModification() {
   vbeOutput.showInfo(`Start check modification: refresh button.`, false);
   displayMenus(false);
   try {
@@ -326,7 +326,7 @@ export async function handlerUpdateModificationOnFolder() {
   }
 }
 
-export async function handlerCommitModuleFromVbeDiff(fileInfo: DiffFileInfo) {
+export async function handlerDiffViewCommitModule(fileInfo: DiffFileInfo) {
   const bookPath = await getExcelPathFromModule(vscode.Uri.file(fileInfo.compareFilePath!));
   if (bookPath === undefined) {
     vbeOutput.showWarn(fileInfo.moduleName + ' is not a VBE project file.');
@@ -336,13 +336,24 @@ export async function handlerCommitModuleFromVbeDiff(fileInfo: DiffFileInfo) {
   const isRemove = !(await vbecmCommon.fileExists(fileInfo.compareFilePath!));
 
   if (isRemove) {
-    await handlerCommitModuleFromVbeDiffRemove(bookPath, fileInfo.moduleName!);
+    await handlerDiffViewRemoveModuleWhenCommit(bookPath, fileInfo.moduleName!);
   } else {
-    await handlerCommitModuleFromFile(vscode.Uri.file(fileInfo.compareFilePath!));
+    await handlerEditorCommitModule(vscode.Uri.file(fileInfo.compareFilePath!));
   }
 }
 
-async function handlerCommitModuleFromVbeDiffRemove(bookPath: string, modulePath: string) {
+export async function handlerDiffViewPullModule(fileInfo: DiffFileInfo) {
+  const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
+  if (bookPath === undefined) {
+    vbeOutput.showWarn(fileInfo.moduleName + ' is not a VBE project file.');
+    return;
+  }
+
+  const pathSrcModule = getSrcPathFromVbeModule(fileInfo.compareFilePath!);
+  await handlerEditorPullModule(vscode.Uri.file(pathSrcModule));
+}
+
+async function handlerDiffViewRemoveModuleWhenCommit(bookPath: string, modulePath: string) {
   displayMenus(false);
   try {
     await vbs.removeModuleSync(bookPath, modulePath);
@@ -357,33 +368,33 @@ async function handlerCommitModuleFromVbeDiffRemove(bookPath: string, modulePath
   return true;
 }
 
-export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo) {
-  vbeOutput.showInfo('Start Resolve Vbe Conflicting', false);
+// export async function handlerResolveVbeConflicting(fileInfo: DiffFileInfo) {
+//   vbeOutput.showInfo('Start Resolve Vbe Conflicting', false);
 
-  const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
-  if (bookPath === undefined) {
-    vbeOutput.showWarn(fileInfo.compareFilePath + ' is not a VBE project file.');
-    return;
-  }
+//   const bookPath = await getExcelPathFromVbeModule(vscode.Uri.file(fileInfo.compareFilePath!));
+//   if (bookPath === undefined) {
+//     vbeOutput.showWarn(fileInfo.compareFilePath + ' is not a VBE project file.');
+//     return;
+//   }
 
-  displayMenus(false);
-  try {
-    await vbs.resolveVbeConflicting(bookPath, fileInfo.moduleName!);
-    await updateModificationBySystem();
-    vbeOutput.showInfo('Success Resolve Vbe Conflicting', false);
-  } catch (error) {
-    vbeOutput.showError('Error CheckModified.');
-    vbeOutput.showError(error);
-  } finally {
-    displayMenus();
-  }
-}
+//   displayMenus(false);
+//   try {
+//     await vbs.resolveVbeConflicting(bookPath, fileInfo.moduleName!);
+//     await updateModificationBySystem();
+//     vbeOutput.showInfo('Success Resolve Vbe Conflicting', false);
+//   } catch (error) {
+//     vbeOutput.showError('Error CheckModified.');
+//     vbeOutput.showError(error);
+//   } finally {
+//     displayMenus();
+//   }
+// }
 
-export async function handlerDiffBaseTo(resource: DiffFileInfo): Promise<void> {
+export async function handlerDiffViewDiffBaseTo(resource: DiffFileInfo): Promise<void> {
   await vbs.diffBaseTo(resource);
 }
 
-export async function handlerDiffSrcToVbe(resource: DiffFileInfo): Promise<void> {
+export async function handlerDiffViewDiffSrcToVbe(resource: DiffFileInfo): Promise<void> {
   const pathBook = await getExcelPathFromVbeModule(vscode.Uri.file(resource.compareFilePath!));
   if (pathBook === undefined) {
     vbeOutput.showWarn(resource.compareFilePath + ' is not a VBE project file.');
@@ -392,7 +403,7 @@ export async function handlerDiffSrcToVbe(resource: DiffFileInfo): Promise<void>
   await vbs.diffSrcToVbe(resource, pathBook);
 }
 
-export async function handlerCollapseAllVbeDiffView() {
+export async function handlerDiffViewCollapseAll() {
   await vscode.commands.executeCommand('workbench.actions.treeView.vbeDiffView.collapseAll');
 }
 // common
@@ -410,6 +421,12 @@ async function getExcelPathFromModule(uri: vscode.Uri) {
 async function getExcelPathFromVbeModule(uri: vscode.Uri) {
   const dirParent = path.dirname(path.dirname(uri.fsPath));
   const r = await getExcelPathSrcFolder(vscode.Uri.file(dirParent));
+  return r;
+}
+
+function getSrcPathFromVbeModule(pathModule: string) {
+  const dirParent = path.dirname(path.dirname(pathModule));
+  const r = path.resolve(dirParent, path.basename(pathModule));
   return r;
 }
 

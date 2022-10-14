@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -113,6 +113,10 @@
 			{
 				"command": "vbeDiffView.resolveVbe",
 				"title": "Resolve vbe"
+			},
+      {
+				"command": "vbeDiffView.pullSrc",
+				"title": "Pull"
 			}
 		],
 		"menus": {
@@ -172,15 +176,11 @@
 			],
 			"view/item/context": [
 				{
-					"command": "vbeDiffView.diffVbeSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
-				},
-				{
 					"command": "vbeDiffView.pushSrc",
 					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
 				},
-				{
-					"command": "vbeDiffView.resolveVbe",
+        {
+					"command": "vbeDiffView.pullSrc",
 					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
 				}
 			],
@@ -230,13 +230,14 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
-		"pretest-es": "npm run esbuild-nomap && npm run lint",
+		"pretest-es": "npm run precompile && npm run esbuild-nomap && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
+    "preesbuild-base": "rimraf out",
 		"do-test": "node ./out/runTest.js",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-nomap": "npm run esbuild-base",
+		"esbuild-nomap": "npm run esbuild-base -- --minify",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
 		"test-compile": "tsc -p ./",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",

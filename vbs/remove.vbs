@@ -25,13 +25,13 @@ Else
 End If
 
 '' debug output information
-DebugWriteLine "################", WScript.ScriptName
-DebugWriteLine "bookPath", bookPath
-DebugWriteLine "modulePath", modulePath
+LogDebug "################", WScript.ScriptName
+LogDebug "bookPath", bookPath
+LogDebug "modulePath", modulePath
 
 On Error Resume Next
 '' from vbsCommon.vbs
-OpenExcelFile bookPath
+OpenExcelFileWE bookPath
 
 Dim book
 Set book = GetObject(bookPath)
@@ -71,37 +71,19 @@ Function DeleteVbaModules(book, modulePath)
         If (moduleName = "" Or LCase(moduleName) = LCase(vbComponent.Name)) Then
             If vbComponent.Type = 100 Then
                 vbComponent.CodeModule.DeleteLines 1, vbComponent.CodeModule.CountOfLines
-                DebugWriteLine "Delete Content",vbComponent.Name
+                LogDebug "Delete Content",vbComponent.Name
             ElseIf vbComponent.Type = 3 Then
-                DebugWriteLine "Remove vbComponent",vbComponent.Name
+                LogDebug "Remove vbComponent",vbComponent.Name
                 vBComponents.Remove vbComponent
             Else
                 '' 2(cls), 1(bas)
-                DebugWriteLine "Remove vbComponent",vbComponent.Name
+                LogDebug "Remove vbComponent",vbComponent.Name
                 vBComponents.Remove vbComponent
             End If
         End If
     Next 
 End Function
 
-Function GetModuleName(modulePath, refIsSheetClass)
-    '' sheet module is exported with .sht.cls
-    '' test this extension
-    Dim fso    
-    Set fso = CreateObject("Scripting.FileSystemObject")
-
-    Dim withoutFirstExt
-    withoutFirstExt = fso.GetBaseName(modulePath) 'filename without .ext
-    GetModuleName = withoutFirstExt
-
-    Dim secondExt
-    secondExt = LCase(fso.GetExtensionName(withoutFirstExt))
-    
-    refIsSheetClass = secondExt = "sht"
-    If refIsSheetClass  Then
-      GetModuleName = fso.GetBaseName(withoutFirstExt)
-    End If
-End Function
 
 
 

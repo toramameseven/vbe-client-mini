@@ -225,7 +225,7 @@ export async function gotoVbe(bookPath: string, moduleName: string, codeLineNo: 
   const { err, status, retValue } = runVbs('selectModuleLine.vbs', [
     bookPath,
     moduleName,
-    codeLineNo.toString()
+    codeLineNo.toString(),
   ]);
   if (status !== 0 || err) {
     throw Error(err);
@@ -276,25 +276,21 @@ export async function comparePathAndGo(
   const srcPath = pathToCompare(src);
   const vbePath = pathToCompare(vbe);
 
-  const r = comparePath(basePath, diffTo === 'vbe' ? vbePath : srcPath);
+  const toDiff = diffTo === 'vbe' ? vbePath : srcPath;
+  const doDiff = (await fileExists(toDiff)) || (await dirExists(toDiff));
 
-  if (r.differences > 0) {
-    // const ans = await vscode.window.showInformationMessage(
-    //   confirmMessage,
-    //   { modal: true },
-    //   { title: 'No', isCloseAffordance: true, dialogValue: false },
-    //   { title: 'Yes', isCloseAffordance: false, dialogValue: true }
-    // );
-    // return ans?.dialogValue ?? false;
+  const r = doDiff && comparePath(basePath, toDiff);
+
+  if (r && r.differences > 0) {
     const ans = await modalDialogShow(confirmMessage);
     return ans;
   }
   return true;
 }
 
-export type DiffState = 'modified' | 'add' | 'removed' | 'notModified';
-export type DiffWith = 'DiffWithSrc' | 'DiffWithVbe';
-export type DiffTitle = 'base-vbe: ' | 'base-src: ';
+export type DiffState = 'modified' | 'add' | 'removed' | 'notModified' | 'conflicting';
+export type DiffWith = 'DiffWithSrc' | 'DiffWithVbe' | 'DiffConf';
+export type DiffTitle = 'base-vbe: ' | 'base-src: ' | 'vbe-src: ';
 
 function createDiffInfo(
   r: dirCompare.Result,
@@ -306,8 +302,6 @@ function createDiffInfo(
     .diffSet!.filter((_) => _.state !== 'equal')
     .map((_) => {
       const moduleName = _.name1 || _.name2 || STRING_EMPTY;
-      // not used diffState
-      //const diffState: DiffState = _.name1 === _.name2 ? 'modified' :(( _.name2 === undefined || _.size2 === 0) ? 'removed' : 'add');
       let diffState: DiffState = 'add';
       if (_.name2 === undefined || _.size2 === 0) {
         diffState = 'removed';
@@ -333,6 +327,30 @@ function createDiffInfo(
       return obj;
     });
   return result;
+}
+
+export function createConflictingInfo(d1: DiffFileInfo[], d2: DiffFileInfo[]): DiffFileInfo[] {
+  const common = d1.filter((_) => d2.filter((_d2) => _d2.moduleName === _.moduleName).length);
+  if (!common.length) {
+    return [];
+  }
+
+  const conflictingInfo: DiffFileInfo[] = common.map((_d1) => {
+    const _d2 = d2.filter((_) => _.moduleName === _d1.moduleName);
+    const obj: DiffFileInfo = {
+      moduleName: _d1.moduleName,
+      diffState: 'conflicting',
+      baseFilePath: _d2[0].compareFilePath,
+      compareFilePath: _d1.compareFilePath,
+      titleBaseTo: 'vbe-src: ',
+      isBase: true,
+      isCompare: true,
+      diffWith: 'DiffConf',
+    };
+    return obj;
+  });
+  const r = conflictingInfo.filter((_) => !!_);
+  return r;
 }
 
 export function comparePath(path1: string, path2: string) {
@@ -386,8 +404,8 @@ export async function compareModules(pathBook: string) {
   const r2 = comparePath(baseDir, vbeDir);
   const diffBaseSrc: DiffFileInfo[] = createDiffInfo(r, 'DiffWithSrc', baseDir, srcDir);
   const diffBaseVbe: DiffFileInfo[] = createDiffInfo(r2, 'DiffWithVbe', baseDir, vbeDir);
-
-  return { diffBaseSrc, diffBaseVbe };
+  const conflicting = createConflictingInfo(diffBaseSrc, diffBaseVbe);
+  return { diffBaseSrc, diffBaseVbe, conflicting };
 }
 
 async function getModulesCountInFolder(pathSrc: string) {
@@ -465,21 +483,35 @@ function copyModuleSync(moduleFile: string, fromDir: string, toDir: string) {
   fse.copyFileSync(fromPathFrx, toPathFrx);
 }
 
-//TODO is src is empty, create new file in src
+/**
+ * diff base to src or vbe
+ * TODO is src is empty, create new file in src
+ * @param resource DiffFileInfo
+ */
 export async function diffBaseTo(resource: DiffFileInfo): Promise<void> {
   const b = vscode.Uri.file(resource.baseFilePath ?? STRING_EMPTY);
   const readOnlyDocumentBase = await createVirtualModule(b);
 
+  const existFile = await fileExists(resource.compareFilePath ?? STRING_EMPTY);
   const c = vscode.Uri.file(resource.compareFilePath ?? STRING_EMPTY);
   const virtualC = await createVirtualModule(c);
 
   const documentCompare =
-    resource.diffWith === 'DiffWithVbe' ? virtualC : resource.isCompare ? c : virtualC;
+    resource.diffWith === 'DiffWithVbe' ? virtualC : resource.isCompare && existFile ? c : virtualC;
 
   const t = (resource.titleBaseTo ?? STRING_EMPTY) + resource.moduleName;
-  await vscode.commands.executeCommand('vscode.diff', readOnlyDocumentBase, documentCompare, t);
+  await vscode.commands.executeCommand(
+    'vscode.diff',
+    readOnlyDocumentBase,
+    documentCompare ?? virtualC,
+    t
+  );
 }
-
+/**
+ * diff vbe and src
+ * @param resource DiffFileInfo
+ * @param bookPath
+ */
 export async function diffSrcToVbe(resource: DiffFileInfo, bookPath: string): Promise<void> {
   const { srcDir, vbeDir } = getVbecmDirs(bookPath);
 
