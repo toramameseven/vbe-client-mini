@@ -6,6 +6,8 @@ vbe-client-mini
 Vba モジュールのエクスポート、vs コードのインポート拡張。
 この拡張機能は、Excel を Excel Server と見なします。
 
+[English](./README.md)
+
 ## 要件
 
 

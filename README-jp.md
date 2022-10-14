@@ -6,6 +6,8 @@ vbe-client-mini
 Vba モジュールのエクスポート、vs コードのインポート拡張。
 この拡張機能は、Excel を Excel Server と見なします。
 
+[English](./README.md)
+
 ## 要件
 
 
@@ -134,7 +136,7 @@ Vbecm は、src フォルダーと vbe フォルダーの間の変更をチェ�
 #### 競合
 
 
-Vbecm は、VBEとSrcで競合を検知した場合は、conflicting  treeが有効になります。
+Vbcmeは、VBEとSrcで競合を検知した場合は、confliction  treeが有効になります。
 競合個所を修正してから、コミットしてください。
 
 ### エディターのコンテキスト メニュー

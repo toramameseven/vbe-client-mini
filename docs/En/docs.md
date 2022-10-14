@@ -7,6 +7,8 @@ This is vbe client mini.
 Vba module export, import extension for vs code.
 This extension thinks Excel as Excel Server.
 
+[日本語](./README-jp.md)
+
 ## Requirement
 
 
