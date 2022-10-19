@@ -354,6 +354,13 @@ export function createConflictingInfo(d1: DiffFileInfo[], d2: DiffFileInfo[]): D
 }
 
 export function comparePath(path1: string, path2: string) {
+  const additionalDiffExclude = vscode.workspace
+    .getConfiguration('vbecm')
+    .get<string>('diffExclude');
+  const diffExclude =
+    `**/*.frx,.git,.gitignore, .vscode, ${FOLDER_BASE}, ${FOLDER_VBE}` +
+    (additionalDiffExclude ? ',' + additionalDiffExclude : '');
+
   const options: dirCompare.Options = {
     //compareSize: true,  // comment out for not detecting empty line diff.
     compareContent: true,
@@ -361,7 +368,7 @@ export function comparePath(path1: string, path2: string) {
     //compareFileAsync: dirCompare.fileCompareHandlers.lineBasedFileCompare.compareAsync,
     skipSubdirs: true,
     includeFilter: '*.cls,*.bas,*.frm',
-    excludeFilter: `**/*.frx,.git,.gitignore, ${FOLDER_BASE}, ${FOLDER_VBE}`,
+    excludeFilter: diffExclude,
     ignoreAllWhiteSpaces: true,
     ignoreEmptyLines: true,
     ignoreCase: true,

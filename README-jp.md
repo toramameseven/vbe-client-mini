@@ -62,8 +62,20 @@ vbaモジュールのvscodeエンコーディングを適切に設定します�
 ### 設定
 
 
-* cjk 言語エリアで、vbs メッセージが日本語以外でうまく動作しません。エンコード オプションの設定
-    * vbecm.vbsEncode、日本語の「windows-31j」用
+* Vbecm: Auto Refresh Diff
+    * オンに設定すると、差分ツリー ビューが自動的に更新されます
+
+* Vbecm: Vbs Encode
+    * cjk 言語エリアで、vbs メッセージが日本語以外でうまく動作しません。エンコード オプションの設定
+        vbecm.vbsEncode、日本語の「windows-31j」用
+
+* Vbecm: Diff Exclude
+    * vba 以外のフォルダーがある場合は、差分ツリー ビューで検出されます。
+        除外するフォルダーを設定します。
+
+* Vbecm: Open Encoding Test
+    * 日本人向け。 vscode が非 sjis エンコーディングのファイルを開くと、メッセージが表示されます。
+        ミスが多い場合は発進してください。
 
 ### おすすめ
 

@@ -1,6 +1,8 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { TextEditor } from 'vscode';
+import * as Encoding from 'encoding-japanese';
 import * as stBar from './statusBar';
 import * as vbs from './vbsModule';
 import * as vbecmCommon from './vbecmCommon';
@@ -311,6 +313,31 @@ export async function handlerOnSaveRefreshModification(uri: vscode.Uri) {
   }
 }
 
+export async function handlerOnOpenRefreshModification(textDocument: vscode.TextDocument) {
+  const isOpenEncodingTest = vscode.workspace
+    .getConfiguration('vbecm')
+    .get<string>('openEncodingTest');
+
+  if (!isOpenEncodingTest) {
+    return;
+  }
+
+  vbeOutput.showInfo(`Start check encoding on open: ${textDocument.uri.fsPath}`, false);
+
+  // get vscode text on unicode
+  const docText = textDocument.getText();
+
+  // get file text on unicode
+  const text = fs.readFileSync(textDocument.uri.fsPath);
+  const docFile = Encoding.convert(text, {
+    to: 'UNICODE', // to_encoding
+    type: 'string',
+  });
+
+  const textEq = docText === docFile;
+  !textEq && modalDialogShow('My be not proper encoding. please check the encoding.');
+}
+
 // vbe diff tree view
 export async function handlerDiffViewRefreshModification() {
   vbeOutput.showInfo(`Start check modification: refresh button.`, false);
@@ -447,4 +474,18 @@ async function updateModificationBySystem(bookPath?: string) {
 
 async function updateModificationForce(bookPath?: string) {
   await fileDiffProvider.updateModification(bookPath);
+}
+
+async function modalDialogShow(message: string, retValue?: boolean) {
+  if (retValue !== undefined) {
+    return retValue;
+  }
+
+  const ans = await vscode.window.showInformationMessage(
+    message,
+    { modal: true },
+    { title: 'Ok', isCloseAffordance: true, dialogValue: false }
+    // { title: 'Yes', isCloseAffordance: false, dialogValue: true }
+  );
+  return ans?.dialogValue ?? false;
 }
