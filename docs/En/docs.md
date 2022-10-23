@@ -63,8 +63,20 @@ You should better exclude the .base and .vbe folder at the explorer and the sear
 ### settings
 
 
-* At cjk language area, vbs message not work good beside Japanese. Set encoding option
-    * vbecm.vbsEncode, for japanese 'windows-31j'
+* Vbecm: Auto Refresh Diff
+    * Set On, the diff tree view is refreshed automatically
+
+* Vbecm: Vbs Encode
+    * At cjk language area, vbs message not work good beside Japanese. Set encoding option
+        vbecm.vbsEncode, for japanese 'windows-31j'
+
+* Vbecm: Diff Exclude
+    * When there are folders for not vba, the diff tree view detects them.
+        you set the folder to exclude.
+
+* Vbecm: Open Encoding Test
+    * For japanese. When the vscode opens files with non sjis encoding, it shows message.
+        If many mistake happen, please set off.
 
 ### Recommendation
 

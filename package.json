@@ -6,7 +6,7 @@
 	"author": {
 		"name": "toramame-seven"
 	},
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"icon": "images/logo.png",
 	"galleryBanner": {
 		"color": "#C80000",
@@ -114,7 +114,7 @@
 				"command": "vbeDiffView.resolveVbe",
 				"title": "Resolve vbe"
 			},
-      {
+			{
 				"command": "vbeDiffView.pullSrc",
 				"title": "Pull"
 			}
@@ -179,7 +179,7 @@
 					"command": "vbeDiffView.pushSrc",
 					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
 				},
-        {
+				{
 					"command": "vbeDiffView.pullSrc",
 					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
 				}
@@ -210,7 +210,7 @@
 		"configuration": {
 			"title": "vbecm",
 			"properties": {
-        "vbecm.AutoRefreshDiff": {
+				"vbecm.AutoRefreshDiff": {
 					"type": "boolean",
 					"default": false,
 					"description": "Automatically refresh diff information",
@@ -221,6 +221,18 @@
 					"default": "windows-31j",
 					"description": "Set system encoding. If Japanese, windows-31j",
 					"order": 2
+				},
+				"vbecm.diffExclude": {
+					"type": "string",
+					"default": ".vscode",
+					"description": "Set additional exclude path for diff. **/*.frx,.git,.gitignore,.base, .vbe are set.",
+					"order": 3
+				},
+        "vbecm.openEncodingTest": {
+					"type": "boolean",
+					"default": false,
+					"description": "Test if a document is open by proper encoding. default is off",
+					"order": 4
 				}
 			}
 		}
@@ -233,7 +245,7 @@
 		"pretest-es": "npm run precompile && npm run esbuild-nomap && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/runTest.js",
-    "preesbuild-base": "rimraf out",
+		"preesbuild-base": "rimraf out",
 		"do-test": "node ./out/runTest.js",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
@@ -246,7 +258,7 @@
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.3",
-		"@types/encoding-japanese": "^2.0.0",
+		"@types/encoding-japanese": "^2.0.1",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/iconv-lite": "^0.0.1",
@@ -270,6 +282,7 @@
 	"dependencies": {
 		"chai": "^4.3.6",
 		"dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
+		"encoding-japanese": "^2.0.0",
 		"fs-extra": "^10.1.0",
 		"iconv-lite": "^0.6.3",
 		"uuid": "^9.0.0"

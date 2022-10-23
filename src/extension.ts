@@ -127,12 +127,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
-      const extensions = ['.bas', '.frm', '.cls', '.frx'];
+      const extensions = ['.bas', '.frm', '.cls', '.frx','.vbs'];
       const extension = event.fileName.slice(-4).toLowerCase();
       if (!extensions.includes(extension)) {
         return;
       }
       handler.handlerOnSaveRefreshModification(event.uri);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((event) => {
+      const extensions = ['.bas', '.frm', '.cls', '.frx', '.vbs'];
+      const extension = event.fileName.slice(-4).toLowerCase();
+      if (!extensions.includes(extension)) {
+        return;
+      }
+      handler.handlerOnOpenRefreshModification(event);
     })
   );
 

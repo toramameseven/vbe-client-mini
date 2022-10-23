@@ -5,6 +5,18 @@ All notable changes to the "vbecm" extension will be documented in this file.
 ## [Unreleased]
 
 
+## [0.0.8] - 2022-10-XX
+
+### Added
+
+- Encoding check, when open a document. for japanese only.
+
+### Fixed
+
+- When there are invalid folders in source folder, vbecm detects that. fix this.
+  ou can add additional exclude folders in settings.
+
+
 ## [0.0.7] - 2022-10-10
 
 ### Added

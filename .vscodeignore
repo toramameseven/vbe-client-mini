@@ -10,3 +10,4 @@ vsc-extension-quickstart.md
 **/*.ts
 xlsms/**
 docs
+node_modules
