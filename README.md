@@ -9,6 +9,9 @@ This extension thinks Excel as Excel Server.
 
 [日本語](./README-jp.md)
 
+
+![animation](./images/AnimationVbecm.gif)
+
 ## Requirement
 
 

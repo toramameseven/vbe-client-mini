@@ -8,6 +8,8 @@ Vba モジュールのエクスポート、vs コードのインポート拡張�
 
 [English](./README.md)
 
+![animation](./images/AnimationVbecm.gif)
+
 ## 要件
 
 
