@@ -169,9 +169,17 @@ export async function handlerBookExportFrxModules(uriBook: vscode.Uri) {
   }
 }
 
+export async function handlerEditorPullModule(uriModule: vscode.Uri) {
+  handlerEditorPullModuleCore(uriModule);
+}
+
+export async function handlerEditorPullModuleFrx(uriModule: vscode.Uri) {
+  handlerEditorPullModuleCore(uriModule, true);
+}
+
 // for module
 // export a module
-export async function handlerEditorPullModule(uriModule: vscode.Uri) {
+async function handlerEditorPullModuleCore(uriModule: vscode.Uri, isOnlyFrx = false) {
   vbeOutput.showInfo(`Start pull a module: ${uriModule.fsPath}`);
   // if the module file does not exist, return STRING_EMPTY
   const bookPath = await getExcelPathFromModule(uriModule);
@@ -188,7 +196,12 @@ export async function handlerEditorPullModule(uriModule: vscode.Uri) {
   displayMenus(false);
   try {
     const modulePath = uriModule.fsPath;
-    const r = await vbs.exportModulesAndSynchronize(bookPath, modulePath, diffTestAndConfirm);
+    const r = await vbs.exportModulesAndSynchronize(
+      bookPath,
+      modulePath,
+      diffTestAndConfirm,
+      isOnlyFrx
+    );
     r && vbeOutput.showInfo('Success pull.');
 
     await updateModificationBySystem();
@@ -202,6 +215,14 @@ export async function handlerEditorPullModule(uriModule: vscode.Uri) {
 
 // commit a module
 export async function handlerEditorCommitModule(uriModule: vscode.Uri) {
+  await handlerEditorCommitModuleCore(uriModule, false);
+}
+
+// export async function handlerEditorCommitModuleOnlyFrm(uriModule: vscode.Uri) {
+//   await handlerEditorCommitModuleCore(uriModule, true);
+// }
+
+async function handlerEditorCommitModuleCore(uriModule: vscode.Uri, isFrmOnly: boolean) {
   vbeOutput.showInfo(`Start push a module: ${uriModule.fsPath}`);
   const diffTestAndConfirm = testAndConfirm('Excel Vba may be modified. Do you push this file?');
   const bookPath = await getExcelPathFromModule(uriModule);
@@ -213,7 +234,7 @@ export async function handlerEditorCommitModule(uriModule: vscode.Uri) {
   displayMenus(false);
   try {
     const modulePath = uriModule.fsPath;
-    const r = await vbs.importModules(bookPath, modulePath, diffTestAndConfirm);
+    const r = await vbs.importModules(bookPath, modulePath, diffTestAndConfirm, isFrmOnly);
     r && vbeOutput.showInfo('Success push.');
 
     await updateModificationBySystem();
@@ -329,10 +350,14 @@ export async function handlerOnOpenRefreshModification(textDocument: vscode.Text
 
   // get file text on unicode
   const text = fs.readFileSync(textDocument.uri.fsPath);
-  const docFile = Encoding.convert(text, {
+  let docFile = Encoding.convert(text, {
     to: 'UNICODE', // to_encoding
     type: 'string',
   });
+
+  if (docFile.charCodeAt(0) === 0xfeff) {
+    docFile = docFile.substring(1);
+  }
 
   const textEq = docText === docFile;
   !textEq && modalDialogShow('My be not proper encoding. please check the encoding.');

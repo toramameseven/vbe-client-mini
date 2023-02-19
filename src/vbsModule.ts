@@ -47,7 +47,8 @@ export function getVbecmDirs(bookPath: string, suffix: string = STRING_EMPTY) {
 export async function exportModulesAndSynchronize(
   pathBook: string,
   moduleFileNameOrPath: string = STRING_EMPTY,
-  testConfirm?: TestConfirm
+  testConfirm?: TestConfirm,
+  isOnlyFrx: boolean = false
 ): Promise<boolean | undefined> {
   const { srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'exportModulesAndSynchronize');
 
@@ -59,6 +60,7 @@ export async function exportModulesAndSynchronize(
 
   // export modules to vbe folder
   try {
+    // if a file that name is srcDir exists, this does not create a crcDir Folder.
     const existSrcFile = await vbecmCommon.fileExists(srcDir);
     if (existSrcFile) {
       throw Error(`file ${srcDir} exists. can not create folder`);
@@ -72,7 +74,7 @@ export async function exportModulesAndSynchronize(
   }
 
   // check base and srcDir, some file in srcDir are modified?
-  if (isExistSrc && testConfirm) {
+  if (isExistSrc && testConfirm && !isOnlyFrx) {
     const ans = await testConfirm(baseDir, srcDir, vbeDir, 'src', [moduleFileName]);
     if (ans === false) {
       return false;
@@ -88,8 +90,8 @@ export async function exportModulesAndSynchronize(
       await fse.copy(vbeDir, baseDir);
     }
     if (moduleFileName !== STRING_EMPTY) {
-      copyModuleSync(moduleFileName, vbeDir, srcDir);
-      copyModuleSync(moduleFileName, vbeDir, baseDir);
+      copyModuleSync(moduleFileName, vbeDir, srcDir, isOnlyFrx);
+      copyModuleSync(moduleFileName, vbeDir, baseDir, isOnlyFrx);
     }
   } catch (e) {
     throw e;
@@ -100,10 +102,12 @@ export async function exportModulesAndSynchronize(
 export async function importModules(
   pathBook: string,
   modulePathOrFile: string,
-  testConfirm?: TestConfirm
+  testConfirm?: TestConfirm,
+  isOnlyFrm?: boolean
 ): Promise<boolean | undefined> {
   const { bookPath, srcDir, baseDir, vbeDir } = getVbecmDirs(pathBook, 'importModules');
 
+  // vba project check
   const moduleFileName = path.basename(modulePathOrFile);
 
   const isSrcExist = await vbecmCommon.dirExists(srcDir);
@@ -116,7 +120,7 @@ export async function importModules(
     throw new Error(`Excel file does not exist: ${bookPath}`);
   }
 
-  // export to vbe folder, if module in vbe is modified.  vbe vs. base
+  // export to vbe folder, for test if module in vbe is modified.  vbe vs. base
   try {
     await exportModuleAsync(pathBook, vbeDir, STRING_EMPTY);
   } catch (e) {
@@ -135,9 +139,17 @@ export async function importModules(
     return;
   }
 
-  // import main
+  // import main( src to xlsm(xlsa))
   let successImport = false;
   try {
+    // use a frx in the vbe, for import only frm.
+    if (isOnlyFrm) {
+      const moduleFrx = moduleFileName.replace(/frm$/i, 'frx');
+      const fromPath = path.resolve(vbeDir, moduleFrx);
+      const toPath = path.resolve(srcDir, moduleFrx);
+      fse.copyFileSync(fromPath, toPath);
+    }
+
     // this is import
     await importModuleSync(pathBook, moduleFileName);
     successImport = true;
@@ -433,6 +445,7 @@ async function getModulesCountInFolder(pathSrc: string) {
   }
 }
 
+// now not used
 export async function resolveVbeConflicting(
   pathBook: string,
   moduleFileName: string,
@@ -471,19 +484,27 @@ export async function resolveVbeConflicting(
   }
 }
 
-function copyModuleSync(moduleFile: string, fromDir: string, toDir: string) {
-  const fromPath = path.resolve(fromDir, moduleFile);
-  const toPath = path.resolve(toDir, moduleFile);
-  fse.rmSync(toPath, { force: true });
-  fse.copyFileSync(fromPath, toPath);
-
-  // for frx
+function copyModuleSync(moduleFile: string, fromDir: string, toDir: string, isOnlyFrx = false) {
+  // test frx
   // get (.xxx)
   const extension = path.extname(moduleFile).toLocaleLowerCase();
   const frxModuleNameWithOutEx = path.basename(moduleFile).slice(0, -extension.length);
+
+  // copy file
+  if (extension === '.frm' && isOnlyFrx) {
+    // no copy
+  } else {
+    const fromPath = path.resolve(fromDir, moduleFile);
+    const toPath = path.resolve(toDir, moduleFile);
+    fse.rmSync(toPath, { force: true });
+    fse.copyFileSync(fromPath, toPath);
+  }
+
   if (extension !== '.frm') {
     return;
   }
+
+  // copy frx
   const fromPathFrx = path.resolve(fromDir, frxModuleNameWithOutEx + '.frx');
   const toPathFrx = path.resolve(toDir, frxModuleNameWithOutEx + '.frx');
   fse.rmSync(toPathFrx, { force: true });

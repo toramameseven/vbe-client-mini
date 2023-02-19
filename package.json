@@ -1,302 +1,316 @@
 {
-	"name": "vbe-client-min",
-	"displayName": "vbecm",
-	"description": "excel vba module export, import, commit etc.",
-	"publisher": "toramameseven",
-	"author": {
-		"name": "toramame-seven"
-	},
-	"version": "0.0.8",
-	"icon": "images/logo.png",
-	"galleryBanner": {
-		"color": "#C80000",
-		"theme": "dark"
-	},
-	"engines": {
-		"vscode": "^1.69.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"workspaceContains:**/*.xlsm",
-		"workspaceContains:**/*.xlam",
-		"workspaceContains:**/*.cls",
-		"workspaceContains:**/*.bas",
-		"workspaceContains:**/*.frm",
-		"onView:vbeDiffView"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"views": {
-			"explorer": [
-				{
-					"id": "vbeDiffView",
-					"name": "Vbe Diff",
-					"when": "isWindows"
-				}
-			]
-		},
-		"viewsWelcome": [
-			{
-				"view": "vbeDiffView",
-				"contents": "No modifications found"
-			}
-		],
-		"commands": [
-			{
-				"command": "book.export",
-				"title": "Export all VBA modules"
-			},
-			{
-				"command": "book.import",
-				"title": "Import all VBA modules"
-			},
-			{
-				"command": "book.compile",
-				"title": "Compile VBA"
-			},
-			{
-				"command": "book.exportFrx",
-				"title": "Export only frx modules"
-			},
-			{
-				"command": "srcFolder.commit-all",
-				"title": "Push All Vba modules"
-			},
-			{
-				"command": "srcFolder.pull-all",
-				"title": "Pull All Vba modules"
-			},
-			{
-				"command": "srcFolder.checkModified",
-				"title": "Check modified"
-			},
-			{
-				"command": "srcFolder.compile",
-				"title": "Compile Project"
-			},
-			{
-				"command": "editor.run",
-				"title": "Run Sub function"
-			},
-			{
-				"command": "editor.commit",
-				"title": "Push VBA module"
-			},
-			{
-				"command": "editor.pullModule",
-				"title": "Pull VBA module"
-			},
-			{
-				"command": "editor.gotoVbe",
-				"title": "Goto Vbe module"
-			},
-			{
-				"command": "vbeDiffView.refreshModification",
-				"title": "Refresh",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "vbeDiffView.collapseAll",
-				"title": "collapse All",
-				"icon": "$(collapse-all)"
-			},
-			{
-				"command": "vbeDiffView.diffVbeSrc",
-				"title": "Diff vbe to src"
-			},
-			{
-				"command": "vbeDiffView.pushSrc",
-				"title": "Push"
-			},
-			{
-				"command": "vbeDiffView.resolveVbe",
-				"title": "Resolve vbe"
-			},
-			{
-				"command": "vbeDiffView.pullSrc",
-				"title": "Pull"
-			}
-		],
-		"menus": {
-			"explorer/context": [
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "book.export",
-					"group": "myGroup@1"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "book.import",
-					"group": "myGroup@2"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
-					"command": "book.compile",
-					"group": "myGroup@3"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
-					"command": "book.exportFrx",
-					"group": "myGroup@4"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.commit-all",
-					"group": "myGroup@5"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.pull-all",
-					"group": "myGroup@6"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.checkModified",
-					"group": "myGroup@7"
-				},
-				{
-					"when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
-					"command": "srcFolder.compile",
-					"group": "myGroup@8"
-				}
-			],
-			"view/title": [
-				{
-					"command": "vbeDiffView.refreshModification",
-					"when": "view == vbeDiffView && vbecm.showVbsCommand && isWindows",
-					"group": "navigation@1"
-				},
-				{
-					"command": "vbeDiffView.collapseAll",
-					"when": "view == vbeDiffView && isWindows",
-					"group": "navigation@2"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "vbeDiffView.pushSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
-				},
-				{
-					"command": "vbeDiffView.pullSrc",
-					"when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
-				}
-			],
-			"editor/context": [
-				{
-					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
-					"command": "editor.run",
-					"group": "myGroup@1"
-				},
-				{
-					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand &&  isWindows",
-					"command": "editor.commit",
-					"group": "myGroup@2"
-				},
-				{
-					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
-					"command": "editor.pullModule",
-					"group": "myGroup@3"
-				},
-				{
-					"when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
-					"command": "editor.gotoVbe",
-					"group": "myGroup@4"
-				}
-			]
-		},
-		"configuration": {
-			"title": "vbecm",
-			"properties": {
-				"vbecm.AutoRefreshDiff": {
-					"type": "boolean",
-					"default": false,
-					"description": "Automatically refresh diff information",
-					"order": 1
-				},
-				"vbecm.vbsEncode": {
-					"type": "string",
-					"default": "windows-31j",
-					"description": "Set system encoding. If Japanese, windows-31j",
-					"order": 2
-				},
-				"vbecm.diffExclude": {
-					"type": "string",
-					"default": ".vscode",
-					"description": "Set additional exclude path for diff. **/*.frx,.git,.gitignore,.base, .vbe are set.",
-					"order": 3
-				},
+  "name": "vbe-client-min",
+  "displayName": "vbecm",
+  "description": "excel vba module export, import, commit etc.",
+  "publisher": "toramameseven",
+  "author": {
+    "name": "toramame-seven"
+  },
+  "version": "0.0.8",
+  "icon": "images/logo.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.69.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/*.xlsm",
+    "workspaceContains:**/*.xlam",
+    "workspaceContains:**/*.cls",
+    "workspaceContains:**/*.bas",
+    "workspaceContains:**/*.frm",
+    "onView:vbeDiffView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "vbeDiffView",
+          "name": "Vbe Diff",
+          "when": "isWindows"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "vbeDiffView",
+        "contents": "No modifications found"
+      }
+    ],
+    "commands": [
+      {
+        "command": "book.export",
+        "title": "Export all VBA modules"
+      },
+      {
+        "command": "book.import",
+        "title": "Import all VBA modules"
+      },
+      {
+        "command": "book.compile",
+        "title": "Compile VBA"
+      },
+      {
+        "command": "book.exportFrx",
+        "title": "Export only frx modules"
+      },
+      {
+        "command": "srcFolder.commit-all",
+        "title": "Push All Vba modules"
+      },
+      {
+        "command": "srcFolder.pull-all",
+        "title": "Pull All Vba modules"
+      },
+      {
+        "command": "srcFolder.checkModified",
+        "title": "Check modified"
+      },
+      {
+        "command": "srcFolder.compile",
+        "title": "Compile Project"
+      },
+      {
+        "command": "editor.run",
+        "title": "Run Sub function"
+      },
+      {
+        "command": "editor.commit",
+        "title": "Push VBA module"
+      },
+      {
+        "command": "editor.commitOnlyFrm",
+        "title": "Push Only Frm module",
+        "enablement": "false"
+      },
+      {
+        "command": "editor.pullOnlyFrx",
+        "title": "Pull Only Frx module"
+      },
+      {
+        "command": "editor.pullModule",
+        "title": "Pull VBA module"
+      },
+      {
+        "command": "editor.gotoVbe",
+        "title": "Goto Vbe module"
+      },
+      {
+        "command": "vbeDiffView.refreshModification",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "vbeDiffView.collapseAll",
+        "title": "collapse All",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "vbeDiffView.diffVbeSrc",
+        "title": "Diff vbe to src"
+      },
+      {
+        "command": "vbeDiffView.pushSrc",
+        "title": "Push"
+      },
+      {
+        "command": "vbeDiffView.resolveVbe",
+        "title": "Resolve vbe"
+      },
+      {
+        "command": "vbeDiffView.pullSrc",
+        "title": "Pull"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+          "command": "book.export",
+          "group": "vbecmGroup@1"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+          "command": "book.import",
+          "group": "vbecmGroup@2"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand && !explorerResourceIsFolder",
+          "command": "book.compile",
+          "group": "vbecmGroup@3"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && !explorerResourceIsFolder",
+          "command": "book.exportFrx",
+          "group": "vbecmGroup@4"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+          "command": "srcFolder.commit-all",
+          "group": "vbecmGroup@5"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+          "command": "srcFolder.pull-all",
+          "group": "vbecmGroup@6"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+          "command": "srcFolder.checkModified",
+          "group": "vbecmGroup@7"
+        },
+        {
+          "when": "resourceExtname =~ /\\.xlsm$|\\.xlam$/i && vbecm.showVbsCommand  && explorerResourceIsFolder",
+          "command": "srcFolder.compile",
+          "group": "vbecmGroup@8"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vbeDiffView.refreshModification",
+          "when": "view == vbeDiffView && vbecm.showVbsCommand && isWindows",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vbeDiffView.collapseAll",
+          "when": "view == vbeDiffView && isWindows",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vbeDiffView.pushSrc",
+          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseSrc && isWindows"
+        },
+        {
+          "command": "vbeDiffView.pullSrc",
+          "when": "view == vbeDiffView && viewItem == FileDiffTreeItemBaseVbe && isWindows"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+          "command": "editor.run",
+          "group": "vbecmGroup@1"
+        },
+        {
+          "when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand &&  isWindows",
+          "command": "editor.commit",
+          "group": "vbecmGroup@2"
+        },
+        {
+          "when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+          "command": "editor.pullModule",
+          "group": "vbecmGroup@3"
+        },
+        {
+          "when": "!editorReadonly && resourceExtname =~ /\\.frm$/i && vbecm.showVbsCommand &&  isWindows",
+          "command": "editor.pullOnlyFrx",
+          "group": "vbecmGroup@4"
+        },
+        {
+          "when": "!editorReadonly && resourceExtname =~ /\\.bas$|\\.cls$|\\.frm$/i && vbecm.showVbsCommand && isWindows",
+          "command": "editor.gotoVbe",
+          "group": "vbecmGroup@5"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "vbecm",
+      "properties": {
+        "vbecm.AutoRefreshDiff": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically refresh diff information",
+          "order": 1
+        },
+        "vbecm.vbsEncode": {
+          "type": "string",
+          "default": "windows-31j",
+          "description": "Set system encoding. If Japanese, windows-31j",
+          "order": 2
+        },
+        "vbecm.diffExclude": {
+          "type": "string",
+          "default": ".vscode",
+          "description": "Set additional exclude path for diff. **/*.frx,.git,.gitignore,.base, .vbe are set.",
+          "order": 3
+        },
         "vbecm.openEncodingTest": {
-					"type": "boolean",
-					"default": false,
-					"description": "Test if a document is open by proper encoding. default is off",
-					"order": 4
-				}
-			}
-		}
-	},
-	"scripts": {
-		"precompile": "rimraf out",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"pretest-es": "npm run precompile && npm run esbuild-nomap && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/runTest.js",
-		"preesbuild-base": "rimraf out",
-		"do-test": "node ./out/runTest.js",
-		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
-		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-nomap": "npm run esbuild-base -- --minify",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-		"test-compile": "tsc -p ./",
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"prepackage": "npm run pretest-es",
-		"package": "vsce package --target win32-x64"
-	},
-	"devDependencies": {
-		"@types/chai": "^4.3.3",
-		"@types/encoding-japanese": "^2.0.1",
-		"@types/fs-extra": "^9.0.13",
-		"@types/glob": "^7.2.0",
-		"@types/iconv-lite": "^0.0.1",
-		"@types/mocha": "^9.1.1",
-		"@types/node": "16.x",
-		"@types/tar": "^6.1.2",
-		"@types/uuid": "^8.3.4",
-		"@types/vscode": "^1.69.0",
-		"@typescript-eslint/eslint-plugin": "^5.30.0",
-		"@typescript-eslint/parser": "^5.30.0",
-		"@vscode/test-electron": "^2.1.5",
-		"esbuild": "^0.14.50",
-		"eslint": "^8.18.0",
-		"eslint-config-prettier": "^8.5.0",
-		"glob": "^8.0.3",
-		"mocha": "^10.0.0",
-		"prettier": "^2.7.1",
-		"rimraf": "^3.0.2",
-		"typescript": "^4.7.4"
-	},
-	"dependencies": {
-		"chai": "^4.3.6",
-		"dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
-		"encoding-japanese": "^2.0.0",
-		"fs-extra": "^10.1.0",
-		"iconv-lite": "^0.6.3",
-		"uuid": "^9.0.0"
-	},
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/toramameseven/vbe-client-mini.git"
-	},
-	"homepage": "https://github.com/toramameseven/vbe-client-mini",
-	"__metadata": {
-		"id": "51bfa7a5-c56a-47e5-a9e4-616b13e817e5",
-		"publisherDisplayName": "toramameseven",
-		"publisherId": "90488179-4dd6-4c34-99d7-db81d61b6862",
-		"isPreReleaseVersion": false
-	}
+          "type": "boolean",
+          "default": false,
+          "description": "Test if a document is open by proper encoding. default is off",
+          "order": 4
+        }
+      }
+    }
+  },
+  "scripts": {
+    "precompile": "rimraf out",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "pretest-es": "npm run precompile && npm run esbuild-nomap && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/runTest.js",
+    "preesbuild-base": "rimraf out",
+    "do-test": "node ./out/runTest.js",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-nomap": "npm run esbuild-base -- --minify",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "prepackage": "npm run pretest-es",
+    "package": "vsce package --target win32-x64"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.3",
+    "@types/encoding-japanese": "^2.0.1",
+    "@types/fs-extra": "^9.0.13",
+    "@types/glob": "^7.2.0",
+    "@types/iconv-lite": "^0.0.1",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "16.x",
+    "@types/tar": "^6.1.2",
+    "@types/uuid": "^8.3.4",
+    "@types/vscode": "^1.69.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.14.50",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "chai": "^4.3.6",
+    "dir-compare": "github:toramameseven/dir-compare#v.4.0.0-case",
+    "encoding-japanese": "^2.0.0",
+    "fs-extra": "^10.1.0",
+    "iconv-lite": "^0.6.3",
+    "uuid": "^9.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toramameseven/vbe-client-mini.git"
+  },
+  "homepage": "https://github.com/toramameseven/vbe-client-mini",
+  "__metadata": {
+    "id": "51bfa7a5-c56a-47e5-a9e4-616b13e817e5",
+    "publisherDisplayName": "toramameseven",
+    "publisherId": "90488179-4dd6-4c34-99d7-db81d61b6862",
+    "isPreReleaseVersion": false
+  }
 }

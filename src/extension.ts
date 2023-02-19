@@ -80,6 +80,18 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('editor.commit', handler.handlerEditorCommitModule)
   );
 
+  // commit form editor only frm. a frx in the vbe is used.
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand(
+  //     'editor.commitOnlyFrm',
+  //     handler.handlerEditorCommitModuleOnlyFrm
+  //   )
+  // );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('editor.pullOnlyFrx', handler.handlerEditorPullModuleFrx)
+  );
+
   // goto vbe
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('editor.gotoVbe', handler.handlerEditorGotoVbe)
@@ -127,7 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((event) => {
-      const extensions = ['.bas', '.frm', '.cls', '.frx','.vbs'];
+      const extensions = ['.bas', '.frm', '.cls', '.frx', '.vbs'];
       const extension = event.fileName.slice(-4).toLowerCase();
       if (!extensions.includes(extension)) {
         return;

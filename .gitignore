@@ -7,3 +7,11 @@ src_macrotest.xlsm
 src_macrotest.xlsm/**
 **/.vbe
 **/.base
+xlsms/index.xlsm
+xlsms/sjis.txt
+xlsms/utf8bom.txt
+xlsms/vbecm_test_addin.xlam
+xlsms/xlsAmMenu.xlam
+xlsms/src_vbecm_test_addin.xlam
+xlsms/src_xlsAmMenu.xlam
+xlsms/src_XXXXXXXXXXXXXXXXXXX

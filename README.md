@@ -27,7 +27,7 @@ This extension thinks Excel as Excel Server.
 Set on  next settings
 
 * Macro Settings
-    * Enable all macors(not recommended; potensially dangerouse code can run)
+    * Enable all macros(not recommended; potentially dangerous code can run)
 * Developer Macro Settings
     * Trust access to the VBA project object model
 
@@ -149,10 +149,10 @@ You can click to compare the module in base and the module in the vbe.
 
 The resolve command is removed on the latest version.
 
-#### confilicting
+#### conflicting
 
 
-When vbecm detects some confiliction between the source and the vbe,
+When vbecm detects some conflicting between the source and the vbe,
 this tree is activate.
 Click this item, and show a diff tab between the source and the vbe.
 You edit the source and commit.
